@@ -7,6 +7,7 @@ import Teams from './pages/teams/Teams'
 
 function App() {
   const [currentPage, setCurrentPage] = useState('team')
+  const [permissions, setPermissions] = useState([])
 
   const [messages, setMessages] = useState([])
   const [message, setMessage] = useState('')
@@ -79,6 +80,65 @@ function App() {
     }
   };
 
+
+
+
+  const fetchPermissions = async () => {
+    try {
+      const response = await fetch(
+        'http://localhost:8080/permissions/mine',
+        {
+          headers: {
+            Authorization: 'Bearer user1-test-token-12345',
+          },
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch permissions')
+      }
+
+      const data = await response.json()
+
+      const permissionNames = Array.isArray(data)
+        ? data
+            .map((permission) =>
+              typeof permission === 'string'
+                ? permission
+                : permission.name
+            )
+            .filter(Boolean)
+        : []
+
+      setPermissions(permissionNames)
+
+      console.log('PERMISSION DATA:', data)
+      console.log('PERMISSION NAMES:', permissionNames)
+
+      setPermissions(data)
+    } catch (error) {
+      console.error('Error fetching permissions:', error)
+      setPermissions([])
+    }
+  }
+
+  console.log('CURRENT PERMISSIONS STATE:', permissions)
+
+
+  const hasPermission = (permission) => {
+    const result = permissions.some(
+      (item) => item.name === permission
+    )
+
+    console.log(
+      'CHECK PERMISSION:',
+      permission,
+      'RESULT:',
+      result
+    )
+
+    return result
+  }
 
 
 
@@ -270,6 +330,7 @@ function App() {
     fetchMessages()
     fetchNotifications()
     fetchUsers()
+    fetchPermissions()
 
     const interval = setInterval(() => {
       fetchMessages()
@@ -590,21 +651,23 @@ function App() {
 
             <p className="section-title">WORKSPACE</p>
 
-              <button
-                className={`sidebar-item ${
-                  currentPage === 'team' ? 'active' : ''
-                }`}
-                onClick={() => setCurrentPage('team')}
-              >
-                <span>💬</span>
-                Team Chat
+              {hasPermission('view_channels') && (
+                <button
+                  className={`sidebar-item ${
+                    currentPage === 'team' ? 'active' : ''
+                  }`}
+                  onClick={() => setCurrentPage('team')}
+                >
+                  <span>💬</span>
+                  Team Chat
 
-                {unreadNotifications > 0 && (
-                  <span className="notification-badge">
-                    {unreadNotifications}
-                  </span>
-                )}
-              </button>
+                  {unreadNotifications > 0 && (
+                    <span className="notification-badge">
+                      {unreadNotifications}
+                    </span>
+                  )}
+                </button>
+              )}
               
 
             <button
@@ -641,15 +704,17 @@ function App() {
           <div className="sidebar-section">
             <p className="section-title">TEAMS</p>
 
-              <button
-                className={`sidebar-item ${
-                  currentPage === 'teams' ? 'active' : ''
-                }`}
-                onClick={() => setCurrentPage('teams')}
-              >
-                <span>👥</span>
-                Teams
-              </button>
+              {hasPermission('view_channels') && (
+                <button
+                  className={`sidebar-item ${
+                    currentPage === 'teams' ? 'active' : ''
+                  }`}
+                  onClick={() => setCurrentPage('teams')}
+                >
+                  <span>👥</span>
+                  Teams
+                </button>
+              )}
 
             {selectedTeam && (
               <div className="sidebar-selected-team">
@@ -663,7 +728,7 @@ function App() {
 
 
 
-          {selectedTeam && (
+          {selectedTeam && hasPermission('view_channels') && (
             <div className="sidebar-section">
               <p className="section-title">CHANNELS</p>
 
@@ -698,23 +763,25 @@ function App() {
           )}
 
 
-          <div className="sidebar-section">
-            <p className="section-title">TASKS</p>
+          {hasPermission('view_tasks') && (
+            <div className="sidebar-section">
+              <p className="section-title">TASKS</p>
 
-            <button
-              className={`sidebar-item ${
-                currentPage === 'task' ? 'active' : ''
-              }`}
-              onClick={() => setCurrentPage('task')}
-            >
-              <span>✓</span>
-              Test Task
-            </button>
-          </div>
+              <button
+                className={`sidebar-item ${
+                  currentPage === 'task' ? 'active' : ''
+                }`}
+                onClick={() => setCurrentPage('task')}
+              >
+                <span>✓</span>
+                Test Task
+              </button>
+            </div>
+          )}
 
 
 
-
+        {users.length > 0 && (
           <div className="sidebar-section">
             <p className="section-title">DIRECT MESSAGES</p>
 
@@ -745,6 +812,7 @@ function App() {
                 ))
             )}
           </div>
+          )}
 
         </nav>
 
@@ -771,6 +839,7 @@ function App() {
             ) : currentPage === 'teams' ? (
               <Teams
                 onTeamSelected={setSelectedTeam}
+                hasPermission={hasPermission}
               />
             ) : currentPage === 'task' ? (
               <TaskChat />

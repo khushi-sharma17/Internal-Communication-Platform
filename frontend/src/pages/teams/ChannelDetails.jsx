@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 function ChannelDetails({
   channel,
+  hasPermission,
   onChannelUpdated,
   onChannelDeleted,
 }) {
@@ -254,24 +255,25 @@ function ChannelDetails({
           {/* FOOTER */}
           <div className="channel-details-footer">
 
-            <button
-              className="team-secondary-button"
-              onClick={handleEdit}
-            >
-              Edit Channel
-            </button>
+            {hasPermission('manage_channels') && (
+              <button
+                className="team-secondary-button"
+                onClick={handleEdit}
+              >
+                Edit Channel
+              </button>
+            )}
 
-            <button className="team-primary-button">
-              Manage Members
-            </button>
 
-            <button
-              className="team-danger-button"
-              onClick={handleDelete}
-              disabled={deleting}
-            >
-              {deleting ? 'Deleting...' : 'Delete Channel'}
+            {hasPermission('manage_channels') && (
+              <button
+                className="team-danger-button"
+                onClick={handleDelete}
+                disabled={deleting}
+              >
+                {deleting ? 'Deleting...' : 'Delete Channel'}
             </button>
+            )}
 
           </div>
 

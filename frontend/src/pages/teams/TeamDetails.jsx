@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 function TeamDetails({
   team,
+  hasPermission,
   onManageMembers,
   onTeamUpdated,
   onTeamDeleted,
@@ -198,29 +199,32 @@ function TeamDetails({
 
           <div className="team-details-footer">
 
-            <button
-              className="team-secondary-button"
-              onClick={handleEdit}
-            >
-              Edit Team
-            </button>
-
-
+            {hasPermission('manage_channels') && (
               <button
-                className="team-primary-button"
-                onClick={onManageMembers}
+                className="team-secondary-button"
+                onClick={handleEdit}
               >
+                Edit Team
+              </button>
+            )}
+
+
+            {hasPermission('manage_channel_members') && (
+              <button onClick={onManageMembers}>
                 Manage Members
               </button>
+            )}
 
 
-            <button
-              className="team-danger-button"
-              onClick={handleDelete}
-              disabled={deleting}
-            >
-              {deleting ? 'Deleting...' : 'Delete Team'}
-            </button>
+            {hasPermission('manage_channels') && (
+              <button
+                className="team-danger-button"
+                onClick={handleDelete}
+                disabled={deleting}
+              >
+                {deleting ? 'Deleting...' : 'Delete Team'}
+              </button>
+            )}
 
           </div>
 

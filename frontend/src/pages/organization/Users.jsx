@@ -16,15 +16,12 @@ function Users() {
         return
       }
 
-      const currentAssignment = user.roleAssignments?.[0]
+      const currentAssignments = user.roleAssignments || []
 
-      if (roleId === 0) {
-        if (!currentAssignment) {
-          return
-        }
-
+      // Remove all existing role assignments for this user
+      for (const assignment of currentAssignments) {
         const response = await apiFetch(
-          `/user-roles/${currentAssignment.id}`,
+          `/user-roles/${assignment.id}`,
           {
             method: 'DELETE',
           }
@@ -36,31 +33,46 @@ function Users() {
             'Role removal failed:',
             JSON.stringify(errorData, null, 2)
           )
-          return
-        }
-      } else {
-        const response = await apiFetch('/user-roles', {
-          method: 'POST',
-          body: JSON.stringify({
-            user_id: userId,
-            role_id: roleId,
-            created_at: Math.floor(Date.now() / 1000),
-          }),
-        })
 
-        if (!response.ok) {
-          const errorData = await response.json()
-          console.error(
-            'Role assignment failed:',
-            JSON.stringify(errorData, null, 2)
+          throw new Error(
+            `Failed to remove existing role (${response.status})`
           )
-          return
         }
+      }
+
+      // If "No role" was selected, stop here
+      if (roleId === 0) {
+        await fetchUsers()
+        return
+      }
+
+      // Assign the newly selected role
+      const response = await apiFetch('/user-roles', {
+        method: 'POST',
+        body: JSON.stringify({
+          user_id: userId,
+          role_id: roleId,
+          created_at: Math.floor(Date.now() / 1000),
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+
+        console.error(
+          'Role assignment failed:',
+          JSON.stringify(errorData, null, 2)
+        )
+
+        throw new Error(
+          `Failed to assign role (${response.status})`
+        )
       }
 
       await fetchUsers()
     } catch (error) {
       console.error('Role change error:', error)
+      setError(error.message)
     }
   }
 
@@ -281,7 +293,7 @@ function Users() {
                       <div className="role-control">
                         <select
                           className="role-select"
-                          value={user.roles?.[0]?.id || ''}
+                          value={user.roleAssignments?.[0]?.role_id || ''}
                           onChange={(e) => {
                             const selectedRoleId = e.target.value
                               ? Number(e.target.value)

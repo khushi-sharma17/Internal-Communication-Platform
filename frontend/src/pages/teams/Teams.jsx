@@ -8,7 +8,7 @@ import TeamMembers from './TeamMembers'
 import ChannelList from './ChannelList'
 import ChannelDetails from './ChannelDetails'
 
-function Teams({ onTeamSelected }) {
+function Teams({ onTeamSelected, hasPermission }) {
   const [section, setSection] = useState('teams')
   const [selectedTeam, setSelectedTeam] = useState(null)
   const [selectedChannel, setSelectedChannel] = useState(null)
@@ -75,6 +75,7 @@ function Teams({ onTeamSelected }) {
 
         {section === 'channels' && (
           <ChannelList
+            hasPermission={hasPermission}
             selectedTeam={selectedTeam}
             selectedChannel={selectedChannel}
             setSelectedChannel={setSelectedChannel}
@@ -85,6 +86,7 @@ function Teams({ onTeamSelected }) {
 
         {section === 'members' && (
           <TeamMembers
+            hasPermission={hasPermission}
             selectedTeam={selectedTeam}
           />
         )}
@@ -96,6 +98,7 @@ function Teams({ onTeamSelected }) {
       {selectedTeam && section === 'teams' && (
         <TeamDetails
           team={selectedTeam}
+          hasPermission={hasPermission}
           onManageMembers={() => setSection('members')}
           onTeamUpdated={(updatedTeam) => {
             setSelectedTeam(updatedTeam)
@@ -113,6 +116,7 @@ function Teams({ onTeamSelected }) {
       {/* CHANNEL DETAILS */}
       {selectedChannel && section === 'channels' && (
         <ChannelDetails
+          hasPermission={hasPermission}
           channel={selectedChannel}
           onChannelUpdated={(updatedChannel) => {
             setSelectedChannel(updatedChannel)

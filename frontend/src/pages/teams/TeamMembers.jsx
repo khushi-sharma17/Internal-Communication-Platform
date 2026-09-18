@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { apiFetch } from '../../api/api'
 
-function TeamMembers({ selectedTeam }) {
+function TeamMembers({ selectedTeam, hasPermission }) {
   const [members, setMembers] = useState([])
   const [users, setUsers] = useState([])
   const [roles, setRoles] = useState([])
@@ -351,18 +351,20 @@ function TeamMembers({ selectedTeam }) {
         </div>
 
         <div>
-          <button
-            className="team-primary-button"
-            onClick={() => {
-              setShowAddForm(true)
-              setAddError('')
-              setAddSuccess('')
-              fetchUsers()
-              fetchRoles()
-            }}
-          >
-            + Add Member
-          </button>
+          {hasPermission('manage_channel_members') && (
+            <button
+              className="team-primary-button"
+              onClick={() => {
+                setShowAddForm(true)
+                setAddError('')
+                setAddSuccess('')
+                fetchUsers()
+                fetchRoles()
+              }}
+            >
+              + Add Member
+            </button>
+          )}
 
           <button
             className="team-secondary-button"
@@ -377,7 +379,7 @@ function TeamMembers({ selectedTeam }) {
 
 
 
-      {showAddForm && (
+      {showAddForm && hasPermission('manage_channel_members') && (
         <div className="teams-list-card team-edit-form">
 
           <div className="teams-list-header">
@@ -645,7 +647,8 @@ function TeamMembers({ selectedTeam }) {
 
 
                   <div className="team-member-role">
-                    {editingRole === member.membership_id ? (
+                    {editingRole === member.membership_id &&
+                    hasPermission('manage_channel_members') ? (
                       <div className="team-role-edit">
                         <select
                           value={selectedRoleId}
@@ -695,28 +698,31 @@ function TeamMembers({ selectedTeam }) {
                           )?.name || 'No role assigned'}
                         </span>
 
-                        <button
-                          type="button"
-                          className="team-role-edit-button"
-                          onClick={() => {
-                            setEditingRole(member.membership_id)
-                            setSelectedRoleId(
-                              member.role_id ? String(member.role_id) : ''
-                            )
-                            setRemoveError('')
-                            setRemoveSuccess('')
-                            fetchRoles()
-                          }}
-                        >
-                          Edit
-                        </button>
+                        {hasPermission('manage_channel_members') && (
+                          <button
+                            type="button"
+                            className="team-role-edit-button"
+                            onClick={() => {
+                              setEditingRole(member.membership_id)
+                              setSelectedRoleId(
+                                member.role_id ? String(member.role_id) : ''
+                              )
+                              setRemoveError('')
+                              setRemoveSuccess('')
+                              fetchRoles()
+                            }}
+                          >
+                            Edit
+                          </button>
+                        )}
                       </>
                     )}
                   </div>
 
 
                   <div className="team-member-reporting">
-                    {editingReporting === member.membership_id ? (
+                    {editingReporting === member.membership_id &&
+                      hasPermission('manage_channel_members') ? (
                       <div className="team-reporting-edit">
                         <select
                           value={reportingUserId}
@@ -773,23 +779,25 @@ function TeamMembers({ selectedTeam }) {
                           Reports To: {reportingUserName}
                         </span>
 
-                        <button
-                          type="button"
-                          className="team-role-edit-button"
-                          onClick={() => {
-                            setEditingReporting(member.membership_id)
-                            setReportingUserId(
-                              member.reports_to_user_id
-                                ? String(member.reports_to_user_id)
-                                : ''
-                            )
-                            setRemoveError('')
-                            setRemoveSuccess('')
-                            fetchUsers()
-                          }}
-                        >
-                          Edit
-                        </button>
+                        {hasPermission('manage_channel_members') && (
+                          <button
+                            type="button"
+                            className="team-role-edit-button"
+                            onClick={() => {
+                              setEditingReporting(member.membership_id)
+                              setReportingUserId(
+                                member.reports_to_user_id
+                                  ? String(member.reports_to_user_id)
+                                  : ''
+                              )
+                              setRemoveError('')
+                              setRemoveSuccess('')
+                              fetchUsers()
+                            }}
+                          >
+                            Edit
+                          </button>
+                        )}
                       </>
                     )}
                   </div>
@@ -801,14 +809,18 @@ function TeamMembers({ selectedTeam }) {
                     Active
                   </div>
 
-                  <button
-                    type="button"
-                    className="team-secondary-button team-remove-button"
-                    onClick={() => handleRemoveMember(member.membership_id, userName)}
-                    disabled={removing}
-                  >
-                    {removing ? 'Removing...' : 'Remove'}
-                  </button>
+                  {hasPermission('manage_channel_members') && (
+                    <button
+                      type="button"
+                      className="team-secondary-button team-remove-button"
+                      onClick={() =>
+                        handleRemoveMember(member.membership_id, userName)
+                      }
+                      disabled={removing}
+                    >
+                      {removing ? 'Removing...' : 'Remove'}
+                    </button>
+                  )}
 
                 </div>
               )

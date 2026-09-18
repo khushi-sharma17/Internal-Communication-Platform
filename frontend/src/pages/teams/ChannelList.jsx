@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
 function ChannelList({
+  hasPermission,
   selectedTeam,
   selectedChannel,
   setSelectedChannel,
@@ -174,16 +175,18 @@ function ChannelList({
         </div>
 
         <div>
-          <button
-            className="team-primary-button"
-            onClick={() => {
-              setShowCreateForm(true)
-              setCreateError('')
-              setCreateSuccess('')
-            }}
-          >
-            + Create Channel
-          </button>
+          {hasPermission('manage_channels') && (
+            <button
+              className="team-primary-button"
+              onClick={() => {
+                setShowCreateForm(true)
+                setCreateError('')
+                setCreateSuccess('')
+              }}
+            >
+              + Create Channel
+            </button>
+          )}
 
           <button
             className="team-secondary-button"
@@ -199,7 +202,7 @@ function ChannelList({
 
 
       {/* CREATE CHANNEL FORM */}
-      {showCreateForm && (
+      {showCreateForm && hasPermission('manage_channels') && (
         <div className="teams-list-card team-edit-form">
 
           <div className="teams-list-header">

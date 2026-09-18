@@ -123,6 +123,10 @@ $config = [
                 [
                     'class' => 'yii\rest\UrlRule',
                     'controller' => 'permission',
+                    'extraPatterns' => [
+                        'GET mine' => 'mine',
+                        'OPTIONS mine' => 'options',
+                    ],
                 ],
                 [
                     'class' => 'yii\rest\UrlRule',

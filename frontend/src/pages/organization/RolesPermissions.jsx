@@ -28,7 +28,7 @@ function RolesPermissions() {
         body: JSON.stringify({
           name: roleName.trim(),
           description: roleDescription.trim(),
-          created_at: Math.floor(Date.now() / 1000),
+          permission_ids: selectedPermissions,
         }),
       })
 
@@ -38,35 +38,12 @@ function RolesPermissions() {
         throw new Error(`Failed to create role (${response.status})`)
       }
 
-      const createdRole = await response.json()
-
-      for (const permissionId of selectedPermissions) {
-        const permissionResponse = await apiFetch('/role-permissions', {
-          method: 'POST',
-          body: JSON.stringify({
-            role_id: createdRole.id,
-            permission_id: permissionId,
-            created_at: Math.floor(Date.now() / 1000),
-          }),
-        })
-
-        if (!permissionResponse.ok) {
-          const errorData = await permissionResponse.json()
-          console.error(
-            'Permission mapping failed:',
-            JSON.stringify(errorData, null, 2)
-          )
-          throw new Error(
-            `Failed to assign permission (${permissionResponse.status})`
-          )
-        }
-      }
+      await response.json()
 
       setRoleName('')
       setRoleDescription('')
       setSelectedPermissions([])
       setShowCreateRole(false)
-
 
       await fetchData()
     } catch (error) {

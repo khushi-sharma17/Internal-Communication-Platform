@@ -1,0 +1,1843 @@
+/* =========================================================
+   ORGANIZATION - MILESTONE 1
+   Shared styling for:
+   Users
+   Organization Units
+   Roles & Permissions
+   Reporting Hierarchy
+========================================================= */
+
+
+/* =========================
+   PAGE
+========================= */
+
+.page-container {
+  width: 100%;
+  min-height: 100%;
+  padding: 28px 24px;
+  box-sizing: border-box;
+}
+
+.page-header {
+  margin-bottom: 24px;
+}
+
+.page-header h2 {
+  margin: 0 0 6px;
+  font-size: 26px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.page-header p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.page-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #e5e7eb;
+  overflow-x: auto;
+}
+
+.page-tabs button {
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  padding: 11px 16px;
+  color: #6b7280;
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.page-tabs button:hover {
+  color: #111827;
+}
+
+.page-tabs button.active {
+  border-bottom-color: #2563eb;
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.page-content {
+  width: 100%;
+}
+
+.organization-section {
+  width: 100%;
+}
+
+
+/* =========================
+   SECTION HEADER
+========================= */
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+
+.section-heading h3 {
+  margin: 0 0 4px;
+  color: #111827;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.section-heading p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.secondary-button {
+  flex-shrink: 0;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  background: #ffffff;
+  padding: 8px 14px;
+  color: #111827;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.secondary-button:hover {
+  background: #f8fafc;
+  border-color: #9ca3af;
+}
+
+
+/* =========================
+   STAT CARDS
+========================= */
+
+.organization-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.organization-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-height: 74px;
+  padding: 16px 18px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.stat-icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.users-icon {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.active-icon {
+  background: #ecfdf5;
+  color: #16a34a;
+}
+
+.manager-icon {
+  background: #f3e8ff;
+  color: #7e22ce;
+}
+
+.organization-stat-card > div:last-child {
+  min-width: 0;
+}
+
+.organization-stat-card span {
+  display: block;
+  margin-bottom: 3px;
+  color: #9ca3af;
+  font-size: 11px;
+}
+
+.organization-stat-card strong {
+  display: block;
+  color: #111827;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+
+/* =========================
+   TABLE CARD
+========================= */
+
+.organization-table-card {
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.table-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.table-card-header h4 {
+  margin: 0;
+  color: #111827;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.table-card-header span {
+  display: block;
+  margin-top: 4px;
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+.organization-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.organization-table {
+  width: 100%;
+  min-width: 1050px;
+  border-collapse: collapse;
+}
+
+.organization-table th {
+  padding: 11px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f8fafc;
+  color: #9ca3af;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.organization-table td {
+  padding: 14px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #374151;
+  font-size: 13px;
+}
+
+.organization-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.organization-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+
+/* =========================
+   USER / UNIT TABLE CELLS
+========================= */
+
+.organization-user-cell {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.organization-user-avatar {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.organization-unit-icon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.organization-user-cell strong {
+  display: block;
+  color: #111827;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.organization-user-cell span {
+  display: block;
+  margin-top: 2px;
+  color: #9ca3af;
+  font-size: 11px;
+}
+
+.table-secondary-text {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+
+/* =========================
+   BADGES
+========================= */
+
+.manager-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #f3f4f6;
+  color: #4b5563;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.unit-type-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 9px;
+  border-radius: 6px;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.active-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #15803d;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.active-status span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+}
+
+
+/* =========================
+   LOADING / EMPTY / ERROR
+========================= */
+
+.organization-loading,
+.organization-empty {
+  padding: 50px 20px;
+  color: #9ca3af;
+  font-size: 13px;
+  text-align: center;
+}
+
+.organization-error {
+  margin: 20px;
+  padding: 12px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 13px;
+}
+
+
+/* =========================
+   ROLES & PERMISSIONS
+========================= */
+
+.roles-permissions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 20px;
+}
+
+.organization-panel {
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.panel-header h4 {
+  margin: 0;
+  color: #111827;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.panel-header span {
+  display: block;
+  margin-top: 4px;
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+.role-list,
+.permission-list {
+  padding: 12px;
+}
+
+.role-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.role-card:hover {
+  background: #f8fafc;
+}
+
+.role-icon {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.role-details {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.role-details strong {
+  color: #111827;
+  font-size: 14px;
+}
+
+.role-details span {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.role-details small {
+  margin-top: 2px;
+  color: #9ca3af;
+  font-size: 10px;
+}
+
+.permission-card {
+  margin-bottom: 8px;
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.permission-card:last-child {
+  margin-bottom: 0;
+}
+
+.permission-card:hover {
+  border-color: #d1d5db;
+  background: #f8fafc;
+}
+
+.permission-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+}
+
+.permission-icon {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  background: #ecfdf5;
+  color: #16a34a;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.permission-name {
+  color: #374151;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.permission-description {
+  margin-top: 4px;
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.panel-empty {
+  padding: 30px 20px;
+  color: #9ca3af;
+  font-size: 13px;
+  text-align: center;
+}
+
+
+/* =========================
+   REPORTING HIERARCHY
+========================= */
+
+.hierarchy-section {
+  width: 100%;
+}
+
+.hierarchy-card {
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.hierarchy-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.hierarchy-card-header h4 {
+  margin: 0;
+  color: #111827;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.hierarchy-card-header > div:first-child span {
+  display: block;
+  margin-top: 4px;
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+.hierarchy-legend {
+  display: flex !important;
+  align-items: center;
+  gap: 6px;
+  margin: 0 !important;
+  color: #6b7280 !important;
+  font-size: 12px !important;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  margin: 0 !important;
+  border-radius: 50%;
+  background: #22c55e;
+}
+
+.hierarchy-tree {
+  padding: 30px 24px;
+  background: #f8fafc;
+}
+
+.hierarchy-group {
+  margin-bottom: 32px;
+}
+
+.hierarchy-group:last-child {
+  margin-bottom: 0;
+}
+
+.hierarchy-level {
+  display: flex;
+  justify-content: center;
+}
+
+.hierarchy-user {
+  width: 390px;
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 13px 15px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.hierarchy-user.manager {
+  border-color: #bfdbfe;
+}
+
+.hierarchy-avatar {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.employee-avatar {
+  background: #64748b;
+}
+
+.hierarchy-user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.hierarchy-user-info strong {
+  display: block;
+  color: #111827;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.hierarchy-user-info span {
+  display: block;
+  margin-top: 4px;
+  color: #6b7280;
+  font-size: 11px;
+}
+
+.manager-label {
+  display: inline-flex !important;
+  align-items: center;
+  padding: 4px 7px;
+  margin: 0 !important;
+  border-radius: 5px;
+  background: #eff6ff;
+  color: #2563eb !important;
+  font-size: 10px !important;
+  font-weight: 600;
+}
+
+.hierarchy-status {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 7px;
+  margin: 0 !important;
+  border-radius: 999px;
+  background: #ecfdf5;
+  color: #15803d !important;
+  font-size: 10px !important;
+  font-weight: 600;
+}
+
+.hierarchy-status span {
+  width: 6px;
+  height: 6px;
+  margin: 0 !important;
+  border-radius: 50%;
+  background: #22c55e;
+}
+
+.hierarchy-connector {
+  width: 1px;
+  height: 30px;
+  margin: 0 auto;
+  background: #cbd5e1;
+}
+
+.hierarchy-reports {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.hierarchy-reports::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 25%;
+  right: 25%;
+  height: 1px;
+  background: #cbd5e1;
+}
+
+.hierarchy-report {
+  position: relative;
+  padding-top: 24px;
+}
+
+.report-connector {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 1px;
+  height: 24px;
+  background: #cbd5e1;
+}
+
+.hierarchy-footer {
+  padding: 12px 20px;
+  border-top: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #9ca3af;
+  font-size: 11px;
+}
+
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 900px) {
+  .roles-permissions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hierarchy-reports {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .hierarchy-reports::before {
+    display: none;
+  }
+
+  .hierarchy-report {
+    padding-top: 0;
+  }
+
+  .report-connector {
+    display: none;
+  }
+}
+
+@media (max-width: 850px) {
+  .organization-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .page-container {
+    padding: 20px 16px;
+  }
+
+  .section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .hierarchy-user {
+    width: 100%;
+    max-width: 390px;
+  }
+}
+
+@media (max-width: 600px) {
+  .hierarchy-card-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .hierarchy-tree {
+    padding: 24px 14px;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+/* Organization Unit Create / Edit Form */
+.organization-create-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.organization-create-form > div {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.organization-create-form label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.organization-create-form input,
+.organization-create-form select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  font-size: 14px;
+  background: #ffffff;
+  color: #111827;
+}
+
+.organization-create-form input:focus,
+.organization-create-form select:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.12);
+}
+
+.organization-create-form button {
+  width: fit-content;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 7px;
+  background: #4f46e5;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.organization-create-form button:hover {
+  background: #4338ca;
+}
+
+.organization-create-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.organization-error {
+  grid-column: 1 / -1;
+  padding: 10px 12px;
+  border-radius: 7px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 14px;
+}
+
+/* Organization Unit Action Buttons */
+.organization-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.organization-action-buttons button {
+  padding: 7px 12px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.organization-action-buttons button:hover {
+  background: #f3f4f6;
+}
+
+/* Responsive form */
+@media (max-width: 900px) {
+  .organization-create-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+
+.unit-status-badge {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.unit-status-badge.active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.unit-status-badge.inactive {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+
+
+
+
+
+
+.role-select {
+  min-width: 120px;
+  padding: 7px 30px 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-primary, #222);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.role-select:hover {
+  border-color: var(--primary);
+}
+
+.role-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.06);
+}
+
+
+.role-control {
+  display: flex;
+  align-items: center;
+  min-width: 130px;
+}
+
+
+
+
+
+
+
+
+
+
+/* Create Role Form */
+
+.role-create-form {
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-sizing: border-box;
+}
+
+.role-create-form h5 {
+  margin: 0 0 16px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary, #222);
+}
+
+.role-create-form input[type="text"],
+.role-create-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-primary, #222);
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.role-create-form input[type="text"] {
+  height: 42px;
+}
+
+.role-create-form textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.role-create-form input[type="text"]:focus,
+.role-create-form textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+}
+
+.role-create-form input::placeholder,
+.role-create-form textarea::placeholder {
+  color: var(--text-secondary, #777);
+}
+
+.role-permissions-select {
+  margin-top: 8px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--background, #fafafa);
+}
+
+.role-permissions-select > strong {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--text-primary, #222);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.role-permissions-select label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 8px;
+  border-radius: 7px;
+  cursor: pointer;
+  color: var(--text-primary, #222);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.role-permissions-select label:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.role-permissions-select input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--primary);
+}
+
+.role-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.role-form-actions button {
+  min-width: 100px;
+}
+
+
+
+
+
+
+
+
+
+.role-edit-button,
+.role-delete-button {
+  flex-shrink: 0;
+  min-width: 72px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.role-delete-button {
+  margin-left: 6px;
+}
+
+.role-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.role-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.role-permissions {
+  margin-top: 10px;
+}
+
+.role-permissions > span:first-child {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary, #666);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.permission-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.permission-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 9px;
+  border-radius: 6px;
+  background: var(--surface-secondary, #f3f4f6);
+  border: 1px solid var(--border);
+  color: var(--text-primary, #222);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.no-permissions {
+  font-size: 12px;
+  color: var(--text-secondary, #777);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+/* =========================================================
+   REPORTING HIERARCHY
+   ========================================================= */
+
+.hierarchy-section {
+  width: 100%;
+}
+
+/* =========================================================
+   SECTION HEADER
+   ========================================================= */
+
+.hierarchy-section .section-heading {
+  margin-bottom: 22px;
+}
+
+.hierarchy-section .section-heading h3 {
+  margin: 0;
+  color: #1e293b;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.hierarchy-section .section-heading p {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+/* Refresh button */
+
+.hierarchy-section .secondary-button {
+  min-height: 38px;
+  padding: 9px 16px;
+
+  border: 1px solid #dbe1ea;
+  border-radius: 8px;
+
+  background: #ffffff;
+  color: #334155;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.hierarchy-section .secondary-button:hover:not(:disabled) {
+  border-color: #c3ccd8;
+  background: #f8fafc;
+}
+
+.hierarchy-section .secondary-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   STAT CARDS
+   ========================================================= */
+
+.hierarchy-section .organization-stats {
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.hierarchy-section .organization-stat-card {
+  min-height: 78px;
+  padding: 17px 18px;
+
+  border: 1px solid #e6eaf0;
+  border-radius: 10px;
+
+  background: #ffffff;
+
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.hierarchy-section .organization-stat-card:hover {
+  border-color: #d7dde7;
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.05);
+}
+
+.hierarchy-section .stat-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+}
+
+/* =========================================================
+   MAIN HIERARCHY CARD
+   ========================================================= */
+
+.hierarchy-section .hierarchy-card {
+  overflow: hidden;
+
+  border: 1px solid #e3e7ed;
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+}
+
+/* =========================================================
+   CARD HEADER
+   ========================================================= */
+
+.hierarchy-section .hierarchy-card-header {
+  min-height: 70px;
+  padding: 18px 22px;
+
+  box-sizing: border-box;
+
+  border-bottom: 1px solid #e8ebf0;
+
+  background: #ffffff;
+}
+
+.hierarchy-section .hierarchy-card-header h4 {
+  margin: 0;
+
+  color: #1e293b;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.hierarchy-section .hierarchy-card-header > div:first-child span {
+  display: block;
+
+  margin-top: 5px;
+
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.hierarchy-section .hierarchy-legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 6px 10px;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+
+  background: #f8fafc;
+
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.hierarchy-section .legend-dot {
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: #22c55e;
+}
+
+/* =========================================================
+   REPORTING CONTROLS
+   ========================================================= */
+
+.hierarchy-section .reporting-controls {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr)
+    auto;
+
+  align-items: end;
+
+  gap: 14px;
+
+  padding: 20px 22px;
+
+  border-bottom: 1px solid #e8ebf0;
+
+  background: #ffffff;
+}
+
+.hierarchy-section .reporting-controls > div {
+  min-width: 0;
+}
+
+.hierarchy-section .reporting-controls label {
+  display: block;
+
+  margin-bottom: 7px;
+
+  color: #374151;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.hierarchy-section .reporting-controls select {
+  width: 100%;
+  height: 42px;
+
+  box-sizing: border-box;
+
+  padding: 0 38px 0 12px;
+
+  border: 1px solid #d5dae2;
+  border-radius: 8px;
+
+  outline: none;
+
+  background-color: #ffffff;
+  color: #1f2937;
+
+  font-family: inherit;
+  font-size: 13px;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.hierarchy-section .reporting-controls select:hover {
+  border-color: #b9c1cd;
+}
+
+.hierarchy-section .reporting-controls select:focus {
+  border-color: #64748b;
+
+  box-shadow:
+    0 0 0 3px rgba(100, 116, 139, 0.1);
+}
+
+.hierarchy-section .reporting-controls select:disabled {
+  background: #f8fafc;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* Update button */
+
+.hierarchy-section .reporting-controls > button {
+  height: 42px;
+
+  padding: 0 18px;
+
+  border: 1px solid #334155;
+  border-radius: 8px;
+
+  background: #334155;
+  color: #ffffff;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.1s ease;
+}
+
+.hierarchy-section .reporting-controls > button:hover:not(:disabled) {
+  border-color: #1e293b;
+  background: #1e293b;
+}
+
+.hierarchy-section .reporting-controls > button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.hierarchy-section .reporting-controls > button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   SUCCESS MESSAGE
+   ========================================================= */
+
+.hierarchy-section .organization-success {
+  margin: 14px 22px 0;
+
+  padding: 10px 13px;
+
+  border: 1px solid #bbf7d0;
+  border-radius: 7px;
+
+  background: #f0fdf4;
+  color: #15803d;
+
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* =========================================================
+   HIERARCHY TREE
+   ========================================================= */
+
+.hierarchy-section .hierarchy-tree {
+  width: 100%;
+
+  min-height: 220px;
+
+  box-sizing: border-box;
+
+  padding: 32px 42px 38px;
+
+  background: #f8fafc;
+}
+
+/* Every hierarchy node */
+
+.hierarchy-section .hierarchy-node {
+  position: relative;
+
+  width: 100%;
+}
+
+/* Space between separate top-level trees */
+
+.hierarchy-section .hierarchy-tree > .hierarchy-node {
+  margin-bottom: 32px;
+}
+
+.hierarchy-section .hierarchy-tree > .hierarchy-node:last-child {
+  margin-bottom: 0;
+}
+
+/* =========================================================
+   USER CARD
+   ========================================================= */
+
+.hierarchy-section .hierarchy-node > .hierarchy-user {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  width: 100%;
+  min-height: 70px;
+
+  box-sizing: border-box;
+
+  padding: 13px 16px;
+
+  border: 1px solid #e1e6ed;
+  border-radius: 10px;
+
+  background: #ffffff;
+
+  box-shadow: 0 2px 5px rgba(15, 23, 42, 0.04);
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.hierarchy-section .hierarchy-node > .hierarchy-user:hover {
+  border-color: #cbd5e1;
+
+  box-shadow:
+    0 4px 12px rgba(15, 23, 42, 0.07);
+
+  transform: translateY(-1px);
+}
+
+/* =========================================================
+   AVATAR
+   ========================================================= */
+
+.hierarchy-section .hierarchy-avatar {
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 40px;
+  height: 40px;
+
+  margin-right: 12px;
+
+  border-radius: 10px;
+
+  background: #334155;
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.hierarchy-section .hierarchy-node:has(.hierarchy-children)
+  > .hierarchy-user
+  .hierarchy-avatar {
+  background: #2563eb;
+}
+
+/* =========================================================
+   USER INFORMATION
+   ========================================================= */
+
+.hierarchy-section .hierarchy-user-info {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+}
+
+.hierarchy-section .hierarchy-user-info strong {
+  color: #1e293b;
+
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.hierarchy-section .hierarchy-user-info span {
+  margin-top: 3px;
+
+  color: #94a3b8;
+
+  font-size: 11px;
+}
+
+/* =========================================================
+   MANAGER BADGE
+   ========================================================= */
+
+.hierarchy-section .manager-label {
+  margin-left: auto;
+  margin-right: 12px;
+
+  padding: 4px 8px;
+
+  border: 1px solid #dbeafe;
+  border-radius: 5px;
+
+  background: #eff6ff;
+  color: #2563eb !important;
+
+  font-size: 10px !important;
+  font-weight: 600;
+}
+
+/* =========================================================
+   ACTIVE STATUS
+   ========================================================= */
+
+.hierarchy-section .hierarchy-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+
+  margin-left: 0;
+
+  padding: 4px 8px;
+
+  border: 1px solid #bbf7d0;
+  border-radius: 999px;
+
+  background: #f0fdf4;
+  color: #15803d !important;
+
+  font-size: 10px !important;
+  font-weight: 600;
+}
+
+.hierarchy-section .hierarchy-status span {
+  width: 5px;
+  height: 5px;
+
+  margin: 0;
+
+  border-radius: 50%;
+
+  background: #22c55e;
+}
+
+/* =========================================================
+   CHILDREN
+   ========================================================= */
+
+.hierarchy-section .hierarchy-children {
+  position: relative;
+
+  margin-top: 18px;
+  margin-left: 42px;
+
+  padding-left: 32px;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 18px;
+
+  border-left: 2px solid #d7dee8;
+}
+
+/* =========================================================
+   CHILD CONNECTOR
+   ========================================================= */
+
+.hierarchy-section .hierarchy-children > .hierarchy-node::before {
+  content: '';
+
+  position: absolute;
+
+  left: -32px;
+  top: 35px;
+
+  width: 30px;
+  height: 2px;
+
+  background: #d7dee8;
+}
+
+/* =========================================================
+   CHILD ARROW
+   ========================================================= */
+
+.hierarchy-section .hierarchy-children > .hierarchy-node::after {
+  content: '';
+
+  position: absolute;
+
+  left: -7px;
+  top: 31px;
+
+  width: 7px;
+  height: 7px;
+
+  border-top: 2px solid #94a3b8;
+  border-right: 2px solid #94a3b8;
+
+  transform: rotate(45deg);
+}
+
+/* =========================================================
+   OLD CONNECTOR ELEMENTS
+   ========================================================= */
+
+.hierarchy-section .hierarchy-connector,
+.hierarchy-section .hierarchy-report,
+.hierarchy-section .report-connector {
+  display: contents;
+}
+
+/* We are no longer using the old connector structure */
+
+.hierarchy-section .hierarchy-report::before,
+.hierarchy-section .hierarchy-report::after {
+  display: none;
+}
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.hierarchy-section .hierarchy-footer {
+  padding: 13px 22px;
+
+  border-top: 1px solid #e8ebf0;
+
+  background: #ffffff;
+
+  color: #94a3b8;
+
+  font-size: 11px;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+  .hierarchy-section .reporting-controls {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .hierarchy-section .reporting-controls > button {
+    grid-column: 1 / -1;
+
+    width: fit-content;
+  }
+
+  .hierarchy-section .hierarchy-tree {
+    padding: 28px 28px 34px;
+  }
+
+}
+
+@media (max-width: 700px) {
+
+  .hierarchy-section .reporting-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .hierarchy-section .reporting-controls > button {
+    grid-column: auto;
+    width: 100%;
+  }
+
+  .hierarchy-section .hierarchy-tree {
+    padding: 24px 16px 30px;
+  }
+
+  .hierarchy-section .hierarchy-children {
+    margin-left: 20px;
+    padding-left: 22px;
+  }
+
+  .hierarchy-section .hierarchy-children > .hierarchy-node::before {
+    left: -22px;
+    width: 20px;
+  }
+
+  .hierarchy-section .hierarchy-children > .hierarchy-node::after {
+    left: -7px;
+  }
+
+}
+
+@media (max-width: 500px) {
+
+  .hierarchy-section .organization-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .hierarchy-section .hierarchy-card-header {
+    padding: 16px;
+  }
+
+  .hierarchy-section .reporting-controls {
+    padding: 16px;
+  }
+
+  .hierarchy-section .hierarchy-tree {
+    padding: 20px 12px 26px;
+  }
+
+  .hierarchy-section .hierarchy-node > .hierarchy-user {
+    min-height: 64px;
+    padding: 10px 12px;
+  }
+
+  .hierarchy-section .hierarchy-avatar {
+    width: 36px;
+    height: 36px;
+
+    margin-right: 10px;
+  }
+
+  .hierarchy-section .manager-label {
+    display: none;
+  }
+
+}

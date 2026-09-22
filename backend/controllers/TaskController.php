@@ -17,6 +17,7 @@ class TaskController extends ActiveController
     private $oldStatus;
     private $oldPriority;
     private $oldDueDate;
+    private $oldAssignedTo;
 
     public function behaviors()
     {
@@ -24,6 +25,7 @@ class TaskController extends ActiveController
 
         $behaviors['authenticator'] = [
             'class' => \yii\filters\auth\HttpBearerAuth::class,
+            'except' => ['options'],
         ];
 
         return $behaviors;
@@ -34,9 +36,43 @@ class TaskController extends ActiveController
     public function actions()
     {
         $actions = parent::actions();
+
         unset($actions['view']);
         unset($actions['index']);
+        unset($actions['create']);
+
         return $actions;
+    }
+
+
+
+
+    public function actionCreate()
+    {
+        $model = new Task();
+
+        $model->load(Yii::$app->request->bodyParams, '');
+
+        // Always use the authenticated user as the task creator
+        $model->created_by = Yii::$app->user->id;
+
+        if (!$model->save()) {
+            Yii::$app->response->statusCode = 422;
+
+            return $model->getErrors();
+        }
+
+        Yii::$app->response->statusCode = 201;
+
+        return $model;
+    }
+
+
+
+    public function actionOptions()
+    {
+        Yii::$app->response->statusCode = 200;
+        return '';
     }
 
 
@@ -46,6 +82,11 @@ class TaskController extends ActiveController
     {
         if (!parent::beforeAction($action)) {
             return false;
+        }
+
+        // Allow CORS preflight requests without authentication/permissions
+        if (Yii::$app->request->isOptions) {
+            return true;
         }
 
         Yii::error('TASK ACTION: ' . $action->id);
@@ -91,6 +132,7 @@ class TaskController extends ActiveController
             $this->oldStatus = $task->status;
             $this->oldPriority = $task->priority;
             $this->oldDueDate = $task->due_date;
+            $this->oldAssignedTo = $task->assigned_to;
 
             $newStatus = $request->bodyParams['status'] ?? null;
 
@@ -103,33 +145,6 @@ class TaskController extends ActiveController
                     'completed',
                 ];
 
-                $allowedTransitions = [
-                    'todo' => ['in progress'],
-                    'in progress' => ['blocked', 'review'],
-                    'blocked' => ['in progress'],
-                    'review' => ['completed', 'in progress'],
-                    'completed' => ['todo'],
-                ];
-
-                $currentStatus = $task->status;
-
-                if (
-                    $newStatus !== $currentStatus &&
-                    !in_array(
-                        $newStatus,
-                        $allowedTransitions[$currentStatus] ?? [],
-                        true
-                    )
-                ) {
-                    Yii::$app->response->statusCode = 422;
-                    Yii::$app->response->data = [
-                        'error' => 'Invalid status transition.',
-                        'from' => $currentStatus,
-                        'to' => $newStatus,
-                    ];
-
-                    return false;
-                }
 
                 if (!in_array($newStatus, $allowedStatuses, true)) {
                     Yii::$app->response->statusCode = 422;
@@ -333,6 +348,24 @@ class TaskController extends ActiveController
                     ($this->oldDueDate ?? 'none') .
                     ' to ' .
                     ($result->due_date ?? 'none');
+                $activity->created_at = time();
+
+                $activity->save(false);
+            }
+
+
+            // Assignment change
+            if ($result->assigned_to != $this->oldAssignedTo) {
+                $activity = new TaskActivity();
+
+                $activity->task_id = $result->id;
+                $activity->user_id = Yii::$app->user->id;
+                $activity->action = 'assignment_change';
+                $activity->details =
+                    'Assignment changed from User ' .
+                    ($this->oldAssignedTo ?? 'none') .
+                    ' to User ' .
+                    ($result->assigned_to ?? 'none');
                 $activity->created_at = time();
 
                 $activity->save(false);

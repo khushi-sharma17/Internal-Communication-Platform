@@ -27,20 +27,55 @@ class TaskDependency extends \yii\db\ActiveRecord
         return 'task_dependencies';
     }
 
+
+
+    public function beforeSave($insert)
+    {
+        if ($insert && !$this->created_at) {
+            $this->created_at = time();
+        }
+
+        return parent::beforeSave($insert);
+    }
+
+
+
     /**
      * {@inheritdoc}
      */
     public function rules()
     {
         return [
-            [['task_id', 'depends_on_task_id', 'created_at'], 'required'],
+            [['task_id', 'depends_on_task_id'], 'required'],
             [['task_id', 'depends_on_task_id', 'created_at'], 'integer'],
-            [['task_id', 'depends_on_task_id'], 'unique', 'targetAttribute' => ['task_id', 'depends_on_task_id']],
 
-            ['depends_on_task_id', 'compare', 'compareAttribute' => 'task_id', 'operator' => '!=', 'message' => 'A task cannot depend on itself.'],
+            [['task_id', 'depends_on_task_id'], 'unique',
+                'targetAttribute' => ['task_id', 'depends_on_task_id']
+            ],
 
-            [['depends_on_task_id'], 'exist', 'skipOnError' => true, 'targetClass' => Task::class, 'targetAttribute' => ['depends_on_task_id' => 'id']],
-            [['task_id'], 'exist', 'skipOnError' => true, 'targetClass' => Task::class, 'targetAttribute' => ['task_id' => 'id']],
+            [
+                'depends_on_task_id',
+                'compare',
+                'compareAttribute' => 'task_id',
+                'operator' => '!=',
+                'message' => 'A task cannot depend on itself.'
+            ],
+
+            [
+                ['depends_on_task_id'],
+                'exist',
+                'skipOnError' => true,
+                'targetClass' => Task::class,
+                'targetAttribute' => ['depends_on_task_id' => 'id']
+            ],
+
+            [
+                ['task_id'],
+                'exist',
+                'skipOnError' => true,
+                'targetClass' => Task::class,
+                'targetAttribute' => ['task_id' => 'id']
+            ],
         ];
     }
 

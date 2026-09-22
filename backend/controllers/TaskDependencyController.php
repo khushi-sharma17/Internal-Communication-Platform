@@ -19,10 +19,37 @@ class TaskDependencyController extends ActiveController
 
         $behaviors['authenticator'] = [
             'class' => \yii\filters\auth\HttpBearerAuth::class,
+            'except' => ['options'],
         ];
 
         return $behaviors;
     }
+
+
+
+    public function beforeAction($action)
+    {
+        if (!parent::beforeAction($action)) {
+            return false;
+        }
+
+        // Allow CORS preflight requests without authentication
+        if (Yii::$app->request->isOptions) {
+            return true;
+        }
+
+        return true;
+    }
+
+
+
+    public function actionOptions()
+    {
+        Yii::$app->response->statusCode = 200;
+        return '';
+    }
+
+
 
     public function actions()
     {

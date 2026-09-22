@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use Yii;
 use app\models\TaskActivity;
 use yii\rest\ActiveController;
 
@@ -17,10 +18,35 @@ class TaskAssignmentController extends ActiveController
 
         $behaviors['authenticator'] = [
             'class' => \yii\filters\auth\HttpBearerAuth::class,
+            'except' => ['options'],
         ];
 
         return $behaviors;
     }
+
+
+
+    public function beforeAction($action)
+    {
+        if (!parent::beforeAction($action)) {
+            return false;
+        }
+
+        if (Yii::$app->request->isOptions) {
+            return true;
+        }
+
+        return true;
+    }
+
+
+    public function actionOptions()
+    {
+        Yii::$app->response->statusCode = 200;
+        return '';
+    }
+
+
 
     public function afterAction($action, $result)
     {

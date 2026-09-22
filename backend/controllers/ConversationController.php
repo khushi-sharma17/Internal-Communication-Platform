@@ -137,4 +137,121 @@ class ConversationController extends ActiveController
             ];
         }
     }
+
+
+
+
+
+    public function actionCreateTaskChat()
+    {
+        $userId = \Yii::$app->user->id;
+        $taskId = \Yii::$app->request->bodyParams['task_id'] ?? null;
+
+        if (!$taskId) {
+            \Yii::$app->response->statusCode = 422;
+            return [
+                'message' => 'task_id is required.'
+            ];
+        }
+
+        $task = \app\models\Task::findOne($taskId);
+
+        if (!$task) {
+            \Yii::$app->response->statusCode = 404;
+            return [
+                'message' => 'Task not found.'
+            ];
+        }
+
+        // Check whether a task conversation already exists
+        $conversation = \app\models\Conversation::find()
+            ->where([
+                'type' => 'task_chat',
+                'task_id' => $taskId,
+            ])
+            ->one();
+
+        if ($conversation) {
+            \Yii::$app->response->statusCode = 200;
+            return $conversation;
+        }
+
+        $transaction = \Yii::$app->db->beginTransaction();
+
+        try {
+            $conversation = new \app\models\Conversation();
+            $conversation->type = 'task_chat';
+            $conversation->task_id = $taskId;
+            $conversation->created_by = $userId;
+            $conversation->created_at = time();
+            $conversation->visibility = 'private';
+
+            if (!$conversation->save()) {
+                throw new \Exception(
+                    json_encode($conversation->getErrors())
+                );
+            }
+
+            // Add task creator
+            $participant = new \app\models\ConversationParticipant();
+            $participant->conversation_id = $conversation->id;
+            $participant->user_id = $task->created_by;
+            $participant->joined_at = time();
+            $participant->role = 'member';
+
+            if (!$participant->save()) {
+                throw new \Exception(
+                    json_encode($participant->getErrors())
+                );
+            }
+
+            // Add assigned user if different from creator
+            if ($task->assigned_to && (int)$task->assigned_to !== (int)$task->created_by) {
+                $participant = new \app\models\ConversationParticipant();
+                $participant->conversation_id = $conversation->id;
+                $participant->user_id = $task->assigned_to;
+                $participant->joined_at = time();
+                $participant->role = 'member';
+
+                if (!$participant->save()) {
+                    throw new \Exception(
+                        json_encode($participant->getErrors())
+                    );
+                }
+            }
+
+            // Add current user if not already included
+            if (
+                (int)$userId !== (int)$task->created_by &&
+                (int)$userId !== (int)$task->assigned_to
+            ) {
+                $participant = new \app\models\ConversationParticipant();
+                $participant->conversation_id = $conversation->id;
+                $participant->user_id = $userId;
+                $participant->joined_at = time();
+                $participant->role = 'member';
+
+                if (!$participant->save()) {
+                    throw new \Exception(
+                        json_encode($participant->getErrors())
+                    );
+                }
+            }
+
+            $transaction->commit();
+
+            \Yii::$app->response->statusCode = 201;
+
+            return $conversation;
+
+        } catch (\Throwable $e) {
+            $transaction->rollBack();
+
+            \Yii::$app->response->statusCode = 422;
+
+            return [
+                'message' => $e->getMessage()
+            ];
+        }
+    }
 }

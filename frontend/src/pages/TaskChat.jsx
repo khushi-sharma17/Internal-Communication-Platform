@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-function TaskChat() {
+function TaskChat({ task }) {
   const [messages, setMessages] = useState([])
   const [message, setMessage] = useState('')
   const [replyingTo, setReplyingTo] = useState(null)
@@ -11,9 +11,80 @@ function TaskChat() {
 
   const messagesEndRef = useRef(null)
 
-  const conversationId = 52
+  const [conversationId, setConversationId] = useState(null)
+
+
+  const fetchConversation = async () => {
+    if (!task?.id) {
+      return
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:8080/conversations?task_id=${task.id}`,
+        {
+          headers: {
+            Authorization: 'Bearer user1-test-token-12345',
+          },
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch task conversation')
+      }
+
+      const data = await response.json()
+
+      const taskConversation = data.find(
+        (conversation) =>
+          Number(conversation.task_id) === Number(task.id)
+      )
+
+      console.log('Task:', task)
+      console.log('Conversations:', data)
+      console.log('Selected conversation:', taskConversation)
+
+      if (taskConversation) {
+        setConversationId(taskConversation.id)
+        return
+      }
+
+      const createResponse = await fetch(
+        'http://localhost:8080/conversations/create-task-chat',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer user1-test-token-12345',
+          },
+          body: JSON.stringify({
+            task_id: task.id,
+          }),
+        }
+      )
+
+      if (!createResponse.ok) {
+        throw new Error('Failed to create task conversation')
+      }
+
+      const createdConversation = await createResponse.json()
+
+      console.log('Created task conversation:', createdConversation)
+
+      setConversationId(createdConversation.id)
+      
+    } catch (error) {
+      console.error('Error fetching task conversation:', error)
+      setConversationId(null)
+    }
+  }
+
 
   const fetchMessages = async () => {
+    if (!conversationId) {
+      return
+    }
+
     try {
       const response = await fetch(
         `http://localhost:8080/messages?conversation_id=${conversationId}`,
@@ -72,6 +143,14 @@ function TaskChat() {
 
 
   useEffect(() => {
+    fetchConversation()
+  }, [task?.id])
+
+  useEffect(() => {
+    if (!conversationId) {
+      return
+    }
+
     fetchMessages()
 
     const interval = setInterval(() => {
@@ -79,13 +158,7 @@ function TaskChat() {
     }, 3000)
 
     return () => clearInterval(interval)
-  }, [])
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({
-      behavior: 'smooth',
-    })
-  }, [messages])
+  }, [conversationId, messages])
 
 
 
@@ -257,13 +330,11 @@ function TaskChat() {
       <header className="chat-header">
 
         <div>
-          <h2>
-            <span>✓</span> Test Task
-          </h2>
 
-          <p>
-            Task-based conversation · Task #1
-          </p>
+          <h2>✓ {task?.title || 'Task Chat'}</h2>
+
+          <p>Task-based conversation · Task #{task?.id || '—'}</p>
+
         </div>
 
         <div className="connection-status">
@@ -280,24 +351,37 @@ function TaskChat() {
 
       </header>
 
+
+
       <div className="task-info">
 
         <div>
           <strong>Task</strong>
-          <span>Test Task</span>
+          <span>{task?.title || '—'}</span>
         </div>
 
         <div>
           <strong>Assigned to</strong>
-          <span>User 2</span>
+          <span>
+            {task?.assigned_to
+              ? `User ${task.assigned_to}`
+              : 'Not assigned'}
+          </span>
         </div>
 
         <div>
           <strong>Created by</strong>
-          <span>User 1</span>
+          <span>
+            {task?.created_by
+              ? `User ${task.created_by}`
+              : '—'}
+          </span>
         </div>
 
       </div>
+
+
+
 
       <main className="messages">
 

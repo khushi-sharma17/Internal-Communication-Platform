@@ -4,6 +4,8 @@ import TaskChat from './pages/TaskChat'
 import DirectChat from './pages/DirectChat'
 import Organization from './pages/organization/Organization'
 import Teams from './pages/teams/Teams'
+import Tasks from './pages/tasks/Tasks'
+import TaskDetail from './pages/tasks/TaskDetail'
 
 function App() {
   const [currentPage, setCurrentPage] = useState('team')
@@ -38,6 +40,8 @@ function App() {
 
   const [selectedTeam, setSelectedTeam] = useState(null)
   const [selectedDirectUser, setSelectedDirectUser] = useState(null)
+
+  const [selectedTask, setSelectedTask] = useState(null)
 
   const messagesEndRef = useRef(null)
 
@@ -764,20 +768,20 @@ function App() {
 
 
           {hasPermission('view_tasks') && (
-            <div className="sidebar-section">
-              <p className="section-title">TASKS</p>
+  <div className="sidebar-section">
+    <p className="section-title">TASKS</p>
 
-              <button
-                className={`sidebar-item ${
-                  currentPage === 'task' ? 'active' : ''
-                }`}
-                onClick={() => setCurrentPage('task')}
-              >
-                <span>✓</span>
-                Test Task
-              </button>
-            </div>
-          )}
+    <button
+      className={`sidebar-item ${
+        currentPage === 'tasks' ? 'active' : ''
+      }`}
+      onClick={() => setCurrentPage('tasks')}
+    >
+      <span>✓</span>
+      Tasks
+    </button>
+  </div>
+)}
 
 
 
@@ -841,8 +845,24 @@ function App() {
                 onTeamSelected={setSelectedTeam}
                 hasPermission={hasPermission}
               />
+            ) : currentPage === 'tasks' ? (
+              <Tasks
+                onTaskSelected={(task) => {
+                  setSelectedTask(task)
+                  setCurrentPage('task-detail')
+                }}
+              />
+            ) : currentPage === 'task-detail' ? (
+              <TaskDetail
+                  task={selectedTask}
+                  onBack={() => setCurrentPage('tasks')}
+                  onOpenChat={(task) => {
+                      setSelectedTask(task)
+                      setCurrentPage('task')
+                  }}
+              />
             ) : currentPage === 'task' ? (
-              <TaskChat />
+              <TaskChat task={selectedTask} />
             ) : currentPage === 'direct' ? (
               <DirectChat selectedUser={selectedDirectUser} />
             ) : currentPage === 'notifications' ? (

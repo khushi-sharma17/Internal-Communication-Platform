@@ -143,6 +143,10 @@ $config = [
                 [
                     'class' => 'yii\rest\UrlRule',
                     'controller' => 'conversation',
+                    'extraPatterns' => [
+                        'POST create-task-chat' => 'create-task-chat',
+                        'OPTIONS create-task-chat' => 'options',
+                    ],
                 ],
                 [
                     'class' => 'yii\rest\UrlRule',

@@ -1,4 +1,4 @@
-<?php
+x<?php
 
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
@@ -199,9 +199,7 @@ $config = [
                         'GET' => 'index',
                         'POST' => 'create',
                         'PATCH <id>/read' => 'mark-read',
-                        'PATCH mark-all-read' => 'mark-all-read',
                         'OPTIONS <id>/read' => 'options',
-                        'OPTIONS mark-all-read' => 'options',
                     ],
                 ],
 
@@ -211,21 +209,10 @@ $config = [
                     'pluralize' => true,
                     'extraPatterns' => [
                         'GET' => 'index',
-                        'GET me' => 'me',
                         'OPTIONS' => 'options',
-                        'OPTIONS me' => 'options',
                     ],
                 ],
 
-                [
-                    'class' => 'yii\rest\UrlRule',
-                    'controller' => 'meeting',
-                ],
-
-                [
-                    'class' => 'yii\rest\UrlRule',
-                    'controller' => 'meeting-participant',
-                ],
             ],
         ],
     

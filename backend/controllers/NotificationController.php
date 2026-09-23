@@ -122,4 +122,23 @@ class NotificationController extends Controller
 
         return $notification;
     }
+
+
+
+    public function actionMarkAllRead()
+    {
+        $userId = Yii::$app->user->id;
+
+        Notification::updateAll(
+            ['is_read' => 1],
+            [
+                'user_id' => $userId,
+                'is_read' => 0,
+            ]
+        );
+
+        return [
+            'message' => 'All notifications marked as read.',
+        ];
+    }
 }

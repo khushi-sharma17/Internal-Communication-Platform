@@ -40,4 +40,14 @@ class Meeting extends ActiveRecord
     {
         return $this->hasOne(User::class, ['id' => 'created_by']);
     }
+
+    public function getParticipants()
+    {
+        return $this->hasMany(MeetingParticipant::class, ['meeting_id' => 'id']);
+    }
+
+    public function extraFields()
+    {
+        return ['creator', 'participants'];
+    }
 }

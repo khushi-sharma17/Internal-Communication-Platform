@@ -33,7 +33,7 @@ class UserController extends Controller
 
         $behaviors['authenticator'] = [
             'class' => HttpBearerAuth::class,
-            'except' => ['options'],
+            'except' => ['options', 'me'],
         ];
 
         return $behaviors;
@@ -58,6 +58,42 @@ class UserController extends Controller
             ->asArray()
             ->all();
     }
+
+
+
+    public function actionMe()
+    {
+        $authorization = Yii::$app->request->headers->get('Authorization');
+
+        if (!$authorization || !preg_match('/^Bearer\s+(.+)$/i', $authorization, $matches)) {
+            Yii::$app->response->statusCode = 401;
+
+            return [
+                'message' => 'Bearer token not provided.',
+            ];
+        }
+
+        $token = $matches[1];
+
+        $user = User::findIdentityByAccessToken($token);
+
+        if (!$user) {
+            Yii::$app->response->statusCode = 401;
+
+            return [
+                'message' => 'Invalid authentication token.',
+            ];
+        }
+
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'manager_id' => $user->manager_id,
+        ];
+    }
+
+
 
     public function actionUpdate($id)
     {

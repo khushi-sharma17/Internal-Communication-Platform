@@ -61,4 +61,10 @@ class Notification extends \yii\db\ActiveRecord
     {
         return $this->hasOne(Message::class, ['id' => 'message_id']);
     }
+
+
+    public function extraFields()
+    {
+        return ['user', 'message'];
+    }
 }

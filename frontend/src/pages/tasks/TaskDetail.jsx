@@ -46,6 +46,33 @@ function TaskDetail({ task, onBack, onOpenChat }) {
     const [activityMessage, setActivityMessage] = useState('')
 
 
+
+    const [showEditForm, setShowEditForm] = useState(false)
+    const [savingTask, setSavingTask] = useState(false)
+    const [editMessage, setEditMessage] = useState('')
+
+    const [editTitle, setEditTitle] = useState(task?.title || '')
+    const [editDescription, setEditDescription] = useState(
+        task?.description || ''
+    )
+    const [editPriority, setEditPriority] = useState(
+        task?.priority || 'medium'
+    )
+    const [editDueDate, setEditDueDate] = useState(
+        task?.due_date
+            ? new Date(task.due_date * 1000).toISOString().split('T')[0]
+            : ''
+    )
+
+    const [showActivityForm, setShowActivityForm] = useState(false)
+    const [savingActivity, setSavingActivity] = useState(false)
+    const [newActivityDetails, setNewActivityDetails] = useState('')
+    const [newActivityAction, setNewActivityAction] = useState('comment')
+    const [activityFormMessage, setActivityFormMessage] = useState('')
+
+
+
+
     useEffect(() => {
         fetch('http://localhost:8080/users', {
         headers: {
@@ -274,6 +301,142 @@ function TaskDetail({ task, onBack, onOpenChat }) {
 
 
 
+
+    const handleEditTask = async () => {
+
+        try {
+            setSavingTask(true)
+            setEditMessage('')
+
+            const response = await fetch(
+                `http://localhost:8080/tasks/${task.id}`,
+                {
+                    method: 'PATCH',
+                    headers: {
+                        Authorization: 'Bearer user1-test-token-12345',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title: editTitle,
+                        description: editDescription,
+                        priority: editPriority,
+                        due_date: editDueDate
+                            ? Math.floor(
+                                new Date(editDueDate).getTime() / 1000
+                            )
+                            : null,
+                    }),
+                }
+            )
+
+            const data = await response.json().catch(() => null)
+
+            if (!response.ok) {
+                throw new Error(
+                    data?.message ||
+                    `Failed to update task (${response.status})`
+                )
+            }
+
+            setEditMessage('Task updated successfully.')
+            setShowEditForm(false)
+
+            // Refresh activities because the backend logs task changes.
+            const activityResponse = await fetch(
+                `http://localhost:8080/task-activities?task_id=${task.id}`,
+                {
+                    headers: {
+                        Authorization: 'Bearer user1-test-token-12345',
+                    },
+                }
+            )
+
+            if (activityResponse.ok) {
+                const activityData = await activityResponse.json()
+                setActivities(activityData)
+            }
+
+            // Refresh the page so the updated task details are displayed.
+            window.location.reload()
+
+        } catch (error) {
+            setEditMessage(error.message)
+        } finally {
+            setSavingTask(false)
+        }
+    }
+
+
+    const handleAddActivity = async () => {
+
+        if (!newActivityDetails.trim()) {
+            setActivityFormMessage('Please enter activity details.')
+            return
+        }
+
+        try {
+            setSavingActivity(true)
+            setActivityFormMessage('')
+
+            const response = await fetch(
+                'http://localhost:8080/task-activities',
+                {
+                    method: 'POST',
+                    headers: {
+                        Authorization: 'Bearer user1-test-token-12345',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        task_id: task.id,
+                        action: newActivityAction,
+                        details: newActivityDetails.trim(),
+                        created_at: Math.floor(Date.now() / 1000),
+                    }),
+                }
+            )
+
+            const data = await response.json().catch(() => null)
+
+            if (!response.ok) {
+                throw new Error(
+                    data?.message ||
+                    data?.error ||
+                    `Failed to add activity (${response.status})`
+                )
+            }
+
+            setNewActivityDetails('')
+            setNewActivityAction('comment')
+            setShowActivityForm(false)
+
+            // Refresh activity list.
+            const activityResponse = await fetch(
+                `http://localhost:8080/task-activities?task_id=${task.id}`,
+                {
+                    headers: {
+                        Authorization: 'Bearer user1-test-token-12345',
+                    },
+                }
+            )
+
+            if (activityResponse.ok) {
+                const activityData = await activityResponse.json()
+                setActivities(activityData)
+            }
+
+        } catch (error) {
+            setActivityFormMessage(error.message)
+        } finally {
+            setSavingActivity(false)
+        }
+    }
+
+
+
+
+
+
+
     if (!task) {
         return (
         <div className="task-detail-page">
@@ -306,6 +469,184 @@ function TaskDetail({ task, onBack, onOpenChat }) {
 
   return (
     <div className="task-detail-page">
+
+
+        {showEditForm && (
+            <div className="task-modal-overlay">
+                <div className="task-modal">
+
+                    <div className="task-modal-header">
+                        <div>
+                            <h2>Edit Task</h2>
+                            <p>Update the task details</p>
+                        </div>
+
+                        <button
+                            type="button"
+                            className="task-modal-close"
+                            onClick={() => setShowEditForm(false)}
+                        >
+                            ×
+                        </button>
+                    </div>
+
+                    <div className="task-modal-body">
+
+                        <label>Title</label>
+                        <input
+                            type="text"
+                            value={editTitle}
+                            onChange={(e) => setEditTitle(e.target.value)}
+                            placeholder="Task title"
+                        />
+
+                        <label>Description</label>
+                        <textarea
+                            value={editDescription}
+                            onChange={(e) =>
+                                setEditDescription(e.target.value)
+                            }
+                            placeholder="Task description"
+                            rows="5"
+                        />
+
+                        <label>Priority</label>
+                        <select
+                            value={editPriority}
+                            onChange={(e) =>
+                                setEditPriority(e.target.value)
+                            }
+                        >
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                            <option value="urgent">Urgent</option>
+                        </select>
+
+                        <label>Due Date</label>
+                        <input
+                            type="date"
+                            value={editDueDate}
+                            onChange={(e) =>
+                                setEditDueDate(e.target.value)
+                            }
+                        />
+
+                        {editMessage && (
+                            <p className="task-form-message">
+                                {editMessage}
+                            </p>
+                        )}
+
+                    </div>
+
+                    <div className="task-modal-footer">
+
+                        <button
+                            type="button"
+                            className="cancel-modal-button"
+                            onClick={() => setShowEditForm(false)}
+                        >
+                            Cancel
+                        </button>
+
+                        <button
+                            type="button"
+                            className="save-modal-button"
+                            disabled={savingTask}
+                            onClick={handleEditTask}
+                        >
+                            {savingTask ? 'Saving...' : 'Save Changes'}
+                        </button>
+
+                    </div>
+
+                </div>
+            </div>
+        )}
+
+
+
+        {showActivityForm && (
+            <div className="task-modal-overlay">
+                <div className="task-modal">
+
+                    <div className="task-modal-header">
+                        <div>
+                            <h2>Add Activity</h2>
+                            <p>Record an update or comment</p>
+                        </div>
+
+                        <button
+                            type="button"
+                            className="task-modal-close"
+                            onClick={() => setShowActivityForm(false)}
+                        >
+                            ×
+                        </button>
+                    </div>
+
+                    <div className="task-modal-body">
+
+                        <label>Activity Type</label>
+
+                        <select
+                            value={newActivityAction}
+                            onChange={(e) =>
+                                setNewActivityAction(e.target.value)
+                            }
+                        >
+                            <option value="comment">Comment</option>
+                            <option value="update">Update</option>
+                            <option value="note">Note</option>
+                        </select>
+
+                        <label>Details</label>
+
+                        <textarea
+                            value={newActivityDetails}
+                            onChange={(e) =>
+                                setNewActivityDetails(e.target.value)
+                            }
+                            placeholder="Describe what happened..."
+                            rows="5"
+                        />
+
+                        {activityFormMessage && (
+                            <p className="task-form-message">
+                                {activityFormMessage}
+                            </p>
+                        )}
+
+                    </div>
+
+                    <div className="task-modal-footer">
+
+                        <button
+                            type="button"
+                            className="cancel-modal-button"
+                            onClick={() => setShowActivityForm(false)}
+                        >
+                            Cancel
+                        </button>
+
+                        <button
+                            type="button"
+                            className="save-modal-button"
+                            disabled={savingActivity}
+                            onClick={handleAddActivity}
+                        >
+                            {savingActivity ? 'Adding...' : 'Add Activity'}
+                        </button>
+
+                    </div>
+
+                </div>
+            </div>
+        )}
+
+
+
 
       {/* HEADER */}
 
@@ -345,12 +686,36 @@ function TaskDetail({ task, onBack, onOpenChat }) {
 
             <div className="task-header-actions">
 
-                <button className="secondary-action">
-                Edit Task
+                <button
+                    className="secondary-action"
+                    onClick={() => {
+                        setEditTitle(task.title || '')
+                        setEditDescription(task.description || '')
+                        setEditPriority(task.priority || 'medium')
+                        setEditDueDate(
+                            task.due_date
+                                ? new Date(task.due_date * 1000)
+                                    .toISOString()
+                                    .split('T')[0]
+                                : ''
+                        )
+                        setEditMessage('')
+                        setShowEditForm(true)
+                    }}
+                >
+                    Edit Task
                 </button>
 
-                <button className="primary-action">
-                + Add Activity
+                <button
+                    className="primary-action"
+                    onClick={() => {
+                        setNewActivityDetails('')
+                        setNewActivityAction('comment')
+                        setActivityFormMessage('')
+                        setShowActivityForm(true)
+                    }}
+                >
+                    + Add Activity
                 </button>
 
             </div>

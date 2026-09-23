@@ -1,15 +1,20 @@
 import { useEffect, useRef, useState } from 'react'
 import './App.css'
+import { apiFetch } from './api/api'
 import TaskChat from './pages/TaskChat'
 import DirectChat from './pages/DirectChat'
 import Organization from './pages/organization/Organization'
 import Teams from './pages/teams/Teams'
 import Tasks from './pages/tasks/Tasks'
 import TaskDetail from './pages/tasks/TaskDetail'
+import Meetings from './pages/meetings/Meetings'
 
 function App() {
+  
   const [currentPage, setCurrentPage] = useState('team')
   const [permissions, setPermissions] = useState([])
+
+  const [currentUser, setCurrentUser] = useState(null)
 
   const [messages, setMessages] = useState([])
   const [message, setMessage] = useState('')
@@ -18,6 +23,10 @@ function App() {
   const unreadNotifications = notifications.filter(
     (notification) => Number(notification.is_read) === 0
   ).length
+
+  console.log('UNREAD NOTIFICATIONS:', unreadNotifications)
+console.log('NOTIFICATIONS:', notifications)
+
 
   const [users, setUsers] = useState([])
   const [showMentionPicker, setShowMentionPicker] = useState(false)
@@ -46,13 +55,38 @@ function App() {
   const messagesEndRef = useRef(null)
 
 
+
+
+  const fetchCurrentUser = async () => {
+    try {
+      const response = await apiFetch('/users/me')
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch current user (${response.status})`
+        )
+      }
+
+      const data = await response.json()
+      setCurrentUser(data)
+    } catch (error) {
+      console.error('Error fetching current user:', error)
+      setCurrentUser(null)
+    }
+  }
+
+
+
+
   const fetchNotifications = async () => {
     try {
-      const response = await fetch('http://localhost:8080/notification', {
-        headers: {
-          Authorization: 'Bearer user1-test-token-12345',
-        },
-      })
+      const response = await apiFetch('/notification?expand=message')
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch notifications (${response.status})`
+        )
+      }
 
       const data = await response.json()
       setNotifications(data)
@@ -64,39 +98,25 @@ function App() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch(
-        "http://localhost:8080/users",
-        {
-          headers: {
-            Authorization: "Bearer user1-test-token-12345",
-          },
-        }
-      );
+      const response = await apiFetch('/users')
 
       if (!response.ok) {
-        throw new Error("Failed to fetch users");
+        throw new Error(`Failed to fetch users (${response.status})`)
       }
 
-      const data = await response.json();
-      setUsers(data);
+      const data = await response.json()
+      setUsers(data)
     } catch (error) {
-      console.error("Error fetching users:", error);
+      console.error('Error fetching users:', error)
     }
-  };
+  }
 
 
 
 
   const fetchPermissions = async () => {
     try {
-      const response = await fetch(
-        'http://localhost:8080/permissions/mine',
-        {
-          headers: {
-            Authorization: 'Bearer user1-test-token-12345',
-          },
-        }
-      )
+      const response = await apiFetch('/permissions/mine')
 
       if (!response.ok) {
         throw new Error('Failed to fetch permissions')
@@ -126,6 +146,9 @@ function App() {
     }
   }
 
+
+
+  
   console.log('CURRENT PERMISSIONS STATE:', permissions)
 
 
@@ -146,23 +169,111 @@ function App() {
 
 
 
+  const handleNotificationClick = async (notification) => {
+    // Message notification
+    if (
+      notification.type === 'message' &&
+      notification.message
+    ) {
+      const conversationId = notification.message.conversation_id
+
+      try {
+        // Find out what type of conversation this message belongs to
+        const response = await apiFetch(
+          `/conversations/${conversationId}`
+        )
+
+        if (!response.ok) {
+          throw new Error(
+            `Failed to fetch conversation (${response.status})`
+          )
+        }
+
+        const conversation = await response.json()
+
+        // Direct message
+        if (conversation.type === 'one_to_one') {
+          const sender = users.find(
+            (user) =>
+              Number(user.id) ===
+              Number(notification.message.sender_id)
+          )
+
+          if (sender) {
+            setSelectedDirectUser(sender)
+            setCurrentPage('direct')
+          }
+        }
+
+        // Team chat
+        if (conversation.type === 'team_chat') {
+          setCurrentPage('team')
+
+          // Store the channel from the notification
+          if (conversation.channel_id) {
+            const channelResponse = await apiFetch(
+              `/channels/${conversation.channel_id}`
+            )
+
+            if (channelResponse.ok) {
+              const channel = await channelResponse.json()
+
+              setSelectedChannel(channel)
+            }
+          }
+        }
+
+        // Task chat
+        if (conversation.type === 'task_chat') {
+          if (conversation.task_id) {
+            const taskResponse = await apiFetch(
+              `/tasks/${conversation.task_id}`
+            )
+
+            if (taskResponse.ok) {
+              const task = await taskResponse.json()
+
+              setSelectedTask(task)
+              setCurrentPage('task')
+            }
+          }
+        }
+      } catch (error) {
+        console.error(
+          'Error navigating from notification:',
+          error
+        )
+      }
+    }
+
+    // Meeting notification
+    if (notification.type === 'meeting') {
+      setCurrentPage('meetings')
+    }
+
+    // Mark notification as read
+    if (Number(notification.is_read) === 0) {
+      markNotificationAsRead(notification.id)
+    }
+  }
+
+
+
   const markNotificationAsRead = async (notificationId) => {
     try {
-      const response = await fetch(
-        `http://localhost:8080/notification/${notificationId}/read`,
+      const response = await apiFetch(
+        `/notification/${notificationId}/read`,
         {
           method: 'PATCH',
-          headers: {
-            Authorization: 'Bearer user1-test-token-12345',
-          },
         }
       )
 
       if (!response.ok) {
-        throw new Error('Failed to mark notification as read')
+        throw new Error(
+          `Failed to mark notification as read (${response.status})`
+        )
       }
 
-      // Refresh notifications so the badge updates
       await fetchNotifications()
     } catch (error) {
       console.error('Error marking notification as read:', error)
@@ -170,6 +281,30 @@ function App() {
   }
 
 
+
+  const markAllNotificationsAsRead = async () => {
+    try {
+      const response = await apiFetch(
+        '/notification/mark-all-read',
+        {
+          method: 'PATCH',
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to mark all notifications as read (${response.status})`
+        )
+      }
+
+      await fetchNotifications()
+    } catch (error) {
+      console.error(
+        'Error marking all notifications as read:',
+        error
+      )
+    }
+  }
 
 
 
@@ -183,14 +318,7 @@ function App() {
 
       setChannelsLoading(true)
 
-      const response = await fetch(
-        `http://localhost:8080/teams/${selectedTeam.id}/channels`,
-        {
-          headers: {
-            Authorization: 'Bearer user1-test-token-12345',
-          },
-        }
-      )
+      const response = await apiFetch('/channels')
 
       if (!response.ok) {
         throw new Error(
@@ -228,13 +356,8 @@ function App() {
         return
       }
 
-      const conversationResponse = await fetch(
-        `http://localhost:8080/conversations?channel_id=${selectedChannel.id}`,
-        {
-          headers: {
-            Authorization: 'Bearer user1-test-token-12345',
-          },
-        }
+      const conversationResponse = await apiFetch(
+        `/conversations?channel_id=${selectedChannel.id}`
       )
 
       if (!conversationResponse.ok) {
@@ -268,13 +391,8 @@ function App() {
 
       console.log('MESSAGE REQUEST CONVERSATION ID:', conversation.id)
 
-      const response = await fetch(
-        `http://localhost:8080/messages?conversation_id=${conversation.id}`,
-        {
-          headers: {
-            Authorization: 'Bearer user1-test-token-12345',
-          },
-        }
+      const response = await apiFetch(
+        `/messages?conversation_id=${conversation.id}`
       )
 
       if (!response.ok) {
@@ -309,12 +427,8 @@ function App() {
 
   const markMessageAsRead = async (messageId) => {
     try {
-      await fetch('http://localhost:8080/message-read', {
+      await apiFetch('/message-read', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: 'Bearer user1-test-token-12345',
-        },
         body: JSON.stringify({
           message_id: messageId,
         }),
@@ -335,6 +449,7 @@ function App() {
     fetchNotifications()
     fetchUsers()
     fetchPermissions()
+    fetchCurrentUser()
 
     const interval = setInterval(() => {
       fetchMessages()
@@ -343,6 +458,22 @@ function App() {
 
     return () => clearInterval(interval)
   }, [currentPage, selectedChannel])
+
+
+
+  useEffect(() => {
+    if (currentPage !== 'notifications') {
+      return
+    }
+
+    fetchNotifications()
+
+    const interval = setInterval(() => {
+      fetchNotifications()
+    }, 3000)
+
+    return () => clearInterval(interval)
+  }, [currentPage])
 
 
 
@@ -359,14 +490,10 @@ function App() {
     }
 
     try {
-      const response = await fetch(
-        `http://localhost:8080/messages/${editingMessage.id}`,
+      const response = await apiFetch(
+        `/messages/${editingMessage.id}`,
         {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: 'Bearer user1-test-token-12345',
-          },
           body: JSON.stringify({
             message: message.trim(),
           }),
@@ -398,13 +525,10 @@ function App() {
     }
 
     try {
-      const response = await fetch(
-        `http://localhost:8080/messages/${deletingMessage.id}`,
+      const response = await apiFetch(
+        `/messages/${deletingMessage.id}`,
         {
           method: 'DELETE',
-          headers: {
-            Authorization: 'Bearer user1-test-token-12345',
-          },
         }
       )
 
@@ -437,18 +561,15 @@ function App() {
 
       const existingReaction = messageItem?.reactions?.find(
         (item) =>
-          item.user_id === 1 &&
+          Number(item.user_id) === Number(currentUser?.id) &&
           item.reaction === reaction
       )
 
       if (existingReaction) {
-        const response = await fetch(
-          `http://localhost:8080/message-reaction/${existingReaction.id}`,
+        const response = await apiFetch(
+          `/message-reaction/${existingReaction.id}`,
           {
             method: 'DELETE',
-            headers: {
-              Authorization: 'Bearer user1-test-token-12345',
-            },
           }
         )
 
@@ -456,14 +577,10 @@ function App() {
           throw new Error('Failed to remove reaction')
         }
       } else {
-        const response = await fetch(
-          'http://localhost:8080/message-reaction',
+        const response = await apiFetch(
+          '/message-reaction',
           {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: 'Bearer user1-test-token-12345',
-            },
             body: JSON.stringify({
               message_id: messageId,
               reaction: reaction,
@@ -498,14 +615,10 @@ function App() {
     }
 
     try {
-      const response = await fetch(
-        'http://localhost:8080/messages',
+      const response = await apiFetch(
+        '/messages',
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: 'Bearer user1-test-token-12345',
-          },
           body: JSON.stringify({
             conversation_id: activeConversationId,
             message: message,
@@ -524,13 +637,10 @@ function App() {
         const formData = new FormData()
         formData.append('file', selectedFile)
 
-        const uploadResponse = await fetch(
-          `http://localhost:8080/messages/${createdMessage.id}/upload-attachment`,
+        const uploadResponse = await apiFetch(
+          `/messages/${createdMessage.id}/upload-attachment`,
           {
             method: 'POST',
-            headers: {
-              Authorization: 'Bearer user1-test-token-12345',
-            },
             body: formData,
           }
         )
@@ -565,13 +675,10 @@ function App() {
       const formData = new FormData()
       formData.append('file', selectedFile)
 
-      const response = await fetch(
-        `http://localhost:8080/messages/${messageId}/upload-attachment`,
+      const response = await apiFetch(
+        `/messages/${messageId}/upload-attachment`,
         {
           method: 'POST',
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
           body: formData,
         }
       )
@@ -599,13 +706,8 @@ function App() {
 
   const handleAttachmentDownload = async (attachmentId, fileName) => {
     try {
-      const response = await fetch(
-        `http://localhost:8080/messages/${attachmentId}/download-attachment`,
-        {
-          headers: {
-            Authorization: 'Bearer user1-test-token-12345',
-          },
-        }
+      const response = await apiFetch(
+        `/messages/${attachmentId}/download-attachment`
       )
 
       if (!response.ok) {
@@ -768,20 +870,37 @@ function App() {
 
 
           {hasPermission('view_tasks') && (
-  <div className="sidebar-section">
-    <p className="section-title">TASKS</p>
+            <div className="sidebar-section">
+              <p className="section-title">TASKS</p>
 
-    <button
-      className={`sidebar-item ${
-        currentPage === 'tasks' ? 'active' : ''
-      }`}
-      onClick={() => setCurrentPage('tasks')}
-    >
-      <span>✓</span>
-      Tasks
-    </button>
-  </div>
-)}
+              <button
+                className={`sidebar-item ${
+                  currentPage === 'tasks' ? 'active' : ''
+                }`}
+                onClick={() => setCurrentPage('tasks')}
+              >
+                <span>✓</span>
+                Tasks
+              </button>
+            </div>
+          )}
+
+
+
+          <div className="sidebar-section">
+            <p className="section-title">MEETINGS</p>
+
+            <button
+              className={`sidebar-item ${
+                currentPage === 'meetings' ? 'active' : ''
+              }`}
+              onClick={() => setCurrentPage('meetings')}
+            >
+              <span>📅</span>
+              Meetings
+            </button>
+          </div>
+
 
 
 
@@ -795,7 +914,9 @@ function App() {
               </div>
             ) : (
               users
-                .filter((user) => Number(user.id) !== 1)
+                .filter(
+                  (user) => Number(user.id) !== Number(currentUser?.id)
+                )
                 .map((user) => (
                   <button
                     key={user.id}
@@ -825,7 +946,7 @@ function App() {
           <div className="user-avatar">U</div>
 
           <div>
-            <strong>User 1</strong>
+            <strong>{currentUser?.name || 'Loading...'}</strong>
             <small>Online</small>
           </div>
         </div>
@@ -845,6 +966,8 @@ function App() {
                 onTeamSelected={setSelectedTeam}
                 hasPermission={hasPermission}
               />
+            ) : currentPage === 'meetings' ? (
+              <Meetings />
             ) : currentPage === 'tasks' ? (
               <Tasks
                 onTaskSelected={(task) => {
@@ -872,12 +995,26 @@ function App() {
                   <div>
                     <h2>
                       <span>🔔</span> Notifications
+                      {unreadNotifications > 0 && (
+                        <span className="notification-count">
+                          {unreadNotifications} unread
+                        </span>
+                      )}
                     </h2>
 
                     <p>
                       Stay updated with your messages and mentions
                     </p>
                   </div>
+
+                  {unreadNotifications > 0 && (
+                    <button
+                      className="mark-all-read-button"
+                      onClick={markAllNotificationsAsRead}
+                    >
+                      Mark all as read
+                    </button>
+                  )}
                 </header>
 
                 <div className="notifications-list">
@@ -893,17 +1030,22 @@ function App() {
                       const isUnread = Number(notification.is_read) === 0
 
                       return (
-                        <div
-                          key={notification.id}
-                          className={`notification-item ${
-                            isUnread ? 'unread' : 'read'
-                          }`}
-                        >
+                          <div
+                            key={notification.id}
+                            className={`notification-item ${
+                              isUnread ? 'unread' : 'read'
+                            }`}
+                            onClick={() => handleNotificationClick(notification)}
+                          >
 
                           <div className="notification-icon">
                             {notification.type === 'mention'
-                              ? '@'
-                              : '💬'}
+                            ? '@'
+                            : notification.type === 'meeting'
+                              ? '📅'
+                              : notification.type === 'message'
+                                ? '💬'
+                                : '🔔'}
                           </div>
 
                           <div className="notification-content">
@@ -912,7 +1054,11 @@ function App() {
                               <strong>
                                 {notification.type === 'mention'
                                   ? 'You were mentioned'
-                                  : 'New message'}
+                                  : notification.type === 'meeting'
+                                    ? 'Meeting invitation'
+                                    : notification.type === 'message'
+                                      ? 'New message'
+                                      : 'Notification'}
                               </strong>
 
                               {isUnread && (
@@ -921,7 +1067,15 @@ function App() {
                             </div>
 
                             <p>
-                              {notification.content}
+                              {notification.type === 'message' && notification.message
+                                ? `${users.find(
+                                    (user) =>
+                                      Number(user.id) ===
+                                      Number(notification.message.sender_id)
+                                  )?.name || `User ${notification.message.sender_id}`}: ${
+                                    notification.message.message
+                                  }`
+                                : notification.content}
                             </p>
 
                             <small>
@@ -937,9 +1091,10 @@ function App() {
                           {isUnread && (
                             <button
                               className="mark-read-button"
-                              onClick={() =>
+                              onClick={(event) => {
+                                event.stopPropagation()
                                 markNotificationAsRead(notification.id)
-                              }
+                              }}
                             >
                               Mark as read
                             </button>
@@ -991,7 +1146,9 @@ function App() {
                 messages.map((item) => (
                   <div
                     className={`message ${
-                      item.sender_id === 1 ? 'own-message' : ''
+                      Number(item.sender_id) === Number(currentUser?.id)
+                        ? 'own-message'
+                        : ''
                     }`}
                     key={item.id}
                   >
@@ -1061,7 +1218,7 @@ function App() {
                             const reactedByMe = item.reactions.some(
                               (r) =>
                                 r.reaction === reactionType &&
-                                Number(r.user_id) === 1
+                                Number(r.user_id) === Number(currentUser?.id)
                             )
 
                             return (
@@ -1110,7 +1267,7 @@ function App() {
                           Reply
                         </button>
 
-                        {item.sender_id === 1 && (
+                        {Number(item.sender_id) === Number(currentUser?.id) && (
                           <button
                             className="reply-button"
                             onClick={() => {
@@ -1122,7 +1279,7 @@ function App() {
                           </button>
                         )}
 
-                        {item.sender_id === 1 && (
+                        {Number(item.sender_id) === Number(currentUser?.id) && (
                           <button
                             className="reply-button"
                             onClick={() => setDeletingMessage(item)}

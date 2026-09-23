@@ -134,4 +134,20 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     {
         return $this->hasMany(ChannelMembership::class, ['user_id' => 'id']);
     }
+
+
+    public function fields()
+    {
+        return [
+            'id',
+            'name',
+            'email',
+            'status',
+            'avatar_path',
+            'last_seen_at',
+            'manager_id',
+            'created_at',
+            'updated_at',
+        ];
+    }
 }

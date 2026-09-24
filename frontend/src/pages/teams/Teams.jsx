@@ -8,9 +8,9 @@ import TeamMembers from './TeamMembers'
 import ChannelList from './ChannelList'
 import ChannelDetails from './ChannelDetails'
 
-function Teams({ onTeamSelected, hasPermission }) {
+function Teams({ onTeamSelected, hasPermission, initialSelectedTeam }) {
   const [section, setSection] = useState('teams')
-  const [selectedTeam, setSelectedTeam] = useState(null)
+  const [selectedTeam, setSelectedTeam] = useState(initialSelectedTeam || null)
   const [selectedChannel, setSelectedChannel] = useState(null)
   const [deletedTeamId, setDeletedTeamId] = useState(null)
   const [channelRefreshKey, setChannelRefreshKey] = useState(0)

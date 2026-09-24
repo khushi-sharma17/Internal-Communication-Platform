@@ -7,8 +7,22 @@ import OrganizationUnits from './OrganizationUnits'
 import RolesPermissions from './RolesPermissions'
 import ReportingHierarchy from './ReportingHierarchy'
 
-function Organization() {
-  const [section, setSection] = useState('users')
+function Organization({
+  initialSelectedUser,
+  initialSelectedRole,
+}) {
+
+  
+  const [section, setSection] = useState(
+    initialSelectedRole ? 'roles' : 'users'
+  )
+  const [selectedUser, setSelectedUser] = useState(
+    initialSelectedUser || null
+  )
+
+  const [selectedRole, setSelectedRole] = useState(
+    initialSelectedRole || null
+  )
 
   return (
     <div className="page-container">
@@ -50,9 +64,13 @@ function Organization() {
       </div>
 
       <div className="page-content">
-        {section === 'users' && <Users />}
+        {section === 'users' && (
+          <Users initialSelectedUser={selectedUser} />
+        )}
         {section === 'units' && <OrganizationUnits />}
-        {section === 'roles' && <RolesPermissions />}
+        {section === 'roles' && (
+          <RolesPermissions initialSelectedRole={selectedRole} />
+        )}
         {section === 'hierarchy' && <ReportingHierarchy />}
       </div>
     </div>

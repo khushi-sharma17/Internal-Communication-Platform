@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { apiFetch } from '../../api/api'
 
-function RolesPermissions() {
+function RolesPermissions({ initialSelectedRole }) {
   const [roles, setRoles] = useState([])
   const [permissions, setPermissions] = useState([])
   const [loading, setLoading] = useState(true)
@@ -13,6 +13,9 @@ function RolesPermissions() {
   const [selectedPermissions, setSelectedPermissions] = useState([])
   const [editingRole, setEditingRole] = useState(null)
 
+  const [selectedRole, setSelectedRole] = useState(
+    initialSelectedRole || null
+  )
 
   const handleCreateRole = async () => {
     if (!roleName.trim()) {
@@ -435,7 +438,12 @@ function RolesPermissions() {
               <div className="role-list">
 
                 {roles.map((role) => (
-                  <div className="role-card" key={role.id}>
+                  <div
+                    className={`role-card ${
+                      selectedRole?.id === role.id ? 'selected-role' : ''
+                    }`}
+                    key={role.id}
+                  >
 
                     <div className="role-icon">
                       {role.name?.charAt(0)?.toUpperCase() || 'R'}

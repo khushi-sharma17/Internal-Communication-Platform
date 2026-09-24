@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\components\AuditLogger;
 use app\models\Task;
 use app\models\TaskActivity;
 use Yii;
@@ -61,6 +62,19 @@ class TaskController extends ActiveController
 
             return $model->getErrors();
         }
+
+        AuditLogger::log(
+            'task',
+            (int) $model->id,
+            'created',
+            null,
+            [
+                'title' => $model->title,
+                'status' => $model->status,
+                'priority' => $model->priority,
+                'assigned_to' => $model->assigned_to,
+            ]
+        );
 
         Yii::$app->response->statusCode = 201;
 
@@ -314,6 +328,18 @@ class TaskController extends ActiveController
                 $activity->created_at = time();
 
                 $activity->save(false);
+
+                AuditLogger::log(
+                    'task',
+                    (int) $result->id,
+                    'status_changed',
+                    [
+                        'status' => $this->oldStatus,
+                    ],
+                    [
+                        'status' => $result->status,
+                    ]
+                );
             }
 
             // Priority change
@@ -334,6 +360,18 @@ class TaskController extends ActiveController
                 $activity->created_at = time();
 
                 $activity->save(false);
+
+                AuditLogger::log(
+                    'task',
+                    (int) $result->id,
+                    'priority_changed',
+                    [
+                        'priority' => $this->oldPriority,
+                    ],
+                    [
+                        'priority' => $result->priority,
+                    ]
+                );
             }
 
             // Due date change
@@ -351,6 +389,18 @@ class TaskController extends ActiveController
                 $activity->created_at = time();
 
                 $activity->save(false);
+
+                AuditLogger::log(
+                    'task',
+                    (int) $result->id,
+                    'due_date_changed',
+                    [
+                        'due_date' => $this->oldDueDate,
+                    ],
+                    [
+                        'due_date' => $result->due_date,
+                    ]
+                );
             }
 
 
@@ -369,6 +419,18 @@ class TaskController extends ActiveController
                 $activity->created_at = time();
 
                 $activity->save(false);
+
+                AuditLogger::log(
+                    'task',
+                    (int) $result->id,
+                    'assignment_changed',
+                    [
+                        'assigned_to' => $this->oldAssignedTo,
+                    ],
+                    [
+                        'assigned_to' => $result->assigned_to,
+                    ]
+                );
             }
         }
 

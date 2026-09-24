@@ -205,6 +205,15 @@ $config = [
                     ],
                 ],
 
+
+                [
+                    'class' => 'yii\rest\UrlRule',
+                    'controller' => 'audit-log',
+                    'pluralize' => true,
+                    'only' => ['index', 'view', 'options'],
+                ],
+
+
                 [
                     'class' => 'yii\rest\UrlRule',
                     'controller' => 'user',

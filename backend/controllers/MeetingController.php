@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 use app\models\Meeting;
+use app\components\AuditLogger;
 use yii\filters\auth\HttpBearerAuth;
 use yii\rest\ActiveController;
 
@@ -55,6 +56,18 @@ class MeetingController extends ActiveController
         $model->is_recurring = $model->is_recurring ? 1 : 0;
 
         if ($model->save()) {
+            AuditLogger::log(
+                'meeting',
+                (int) $model->id,
+                'created',
+                null,
+                [
+                    'title' => $model->title,
+                    'created_by' => $model->created_by,
+                    'is_recurring' => $model->is_recurring,
+                ]
+            );
+
             \Yii::$app->response->statusCode = 201;
             return $model;
         }
@@ -82,6 +95,19 @@ class MeetingController extends ActiveController
         $model->is_recurring = $model->is_recurring ? 1 : 0;
 
         if ($model->save()) {
+            AuditLogger::log(
+                'meeting',
+                (int) $model->id,
+                'updated',
+                null,
+                [
+                    'title' => $model->title,
+                    'created_by' => $model->created_by,
+                    'is_recurring' => $model->is_recurring,
+                    'updated_at' => $model->updated_at,
+                ]
+            );
+
             return $model;
         }
 

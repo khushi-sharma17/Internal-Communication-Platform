@@ -8,9 +8,10 @@ import Teams from './pages/teams/Teams'
 import Tasks from './pages/tasks/Tasks'
 import TaskDetail from './pages/tasks/TaskDetail'
 import Meetings from './pages/meetings/Meetings'
+import Dashboard from './pages/dashboard/Dashboard'
 
 function App() {
-  
+
   const [currentPage, setCurrentPage] = useState('team')
   const [permissions, setPermissions] = useState([])
 
@@ -25,7 +26,7 @@ function App() {
   ).length
 
   console.log('UNREAD NOTIFICATIONS:', unreadNotifications)
-console.log('NOTIFICATIONS:', notifications)
+  console.log('NOTIFICATIONS:', notifications)
 
 
   const [users, setUsers] = useState([])
@@ -51,6 +52,10 @@ console.log('NOTIFICATIONS:', notifications)
   const [selectedDirectUser, setSelectedDirectUser] = useState(null)
 
   const [selectedTask, setSelectedTask] = useState(null)
+  const [selectedMeeting, setSelectedMeeting] = useState(null)
+
+  const [selectedUser, setSelectedUser] = useState(null)
+  const [selectedRole, setSelectedRole] = useState(null)
 
   const messagesEndRef = useRef(null)
 
@@ -757,6 +762,16 @@ console.log('NOTIFICATIONS:', notifications)
 
             <p className="section-title">WORKSPACE</p>
 
+              <button
+                className={`sidebar-item ${
+                  currentPage === 'dashboard' ? 'active' : ''
+                }`}
+                onClick={() => setCurrentPage('dashboard')}
+              >
+                <span>📊</span>
+                Dashboard
+              </button>
+
               {hasPermission('view_channels') && (
                 <button
                   className={`sidebar-item ${
@@ -959,15 +974,44 @@ console.log('NOTIFICATIONS:', notifications)
       {/* Main Content */}
 
       <main className="main-content">
-            {currentPage === 'organization' ? (
-              <Organization />
+            {currentPage === 'dashboard' ? (
+              <Dashboard
+                onTaskSelected={(task) => {
+                  setSelectedTask(task)
+                  setCurrentPage('task-detail')
+                }}
+                onTeamSelected={(team) => {
+                  setSelectedTeam(team)
+                  setCurrentPage('teams')
+                }}
+                onMeetingSelected={(meeting) => {
+                  setSelectedMeeting(meeting)
+                  setCurrentPage('meetings')
+                }}
+                onUserSelected={(user) => {
+                  setSelectedUser(user)
+                  setCurrentPage('organization')
+                }}
+                onRoleSelected={(role) => {
+                  setSelectedRole(role)
+                  setCurrentPage('organization')
+                }}
+              />
+            ) : currentPage === 'organization' ? (
+              <Organization
+                initialSelectedUser={selectedUser}
+                initialSelectedRole={selectedRole}
+              />
             ) : currentPage === 'teams' ? (
               <Teams
                 onTeamSelected={setSelectedTeam}
                 hasPermission={hasPermission}
+                initialSelectedTeam={selectedTeam}
               />
             ) : currentPage === 'meetings' ? (
-              <Meetings />
+              <Meetings
+                initialSelectedMeeting={selectedMeeting}
+              />
             ) : currentPage === 'tasks' ? (
               <Tasks
                 onTaskSelected={(task) => {

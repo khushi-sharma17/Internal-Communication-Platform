@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { apiFetch } from '../../api/api'
 import './Meetings.css'
 
-function Meetings() {
+function Meetings({ initialSelectedMeeting }) {
 
     const [meetings, setMeetings] = useState([])
     const [loading, setLoading] = useState(true)
@@ -13,6 +13,9 @@ function Meetings() {
 
     const [showParticipantForm, setShowParticipantForm] = useState(null)
     const [users, setUsers] = useState([])
+    const [selectedMeeting, setSelectedMeeting] = useState(
+      initialSelectedMeeting || null
+    )
     const [selectedUserId, setSelectedUserId] = useState('')
     const [addingParticipant, setAddingParticipant] = useState(false)
 
@@ -717,7 +720,9 @@ function Meetings() {
           {meetings.map((meeting) => (
 
             <div
-              className="meeting-card"
+              className={`meeting-card ${
+                selectedMeeting?.id === meeting.id ? 'selected-meeting' : ''
+              }`}
               key={meeting.id}
             >
 

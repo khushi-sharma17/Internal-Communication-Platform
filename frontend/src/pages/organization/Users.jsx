@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
 import { apiFetch } from '../../api/api'
 
-function Users() {
+function Users({ initialSelectedUser }) {
   const [users, setUsers] = useState([])
+  const [selectedUser, setSelectedUser] = useState(
+    initialSelectedUser || null
+  )
   const [roles, setRoles] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -238,7 +241,10 @@ function Users() {
 
               <tbody>
                 {users.map((user) => (
-                  <tr key={user.id}>
+                  <tr
+                    key={user.id}
+                    className={selectedUser?.id === user.id ? 'selected-user' : ''}
+                  >
 
                     <td>
                       <div className="organization-user-cell">

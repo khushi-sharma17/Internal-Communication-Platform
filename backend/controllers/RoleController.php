@@ -7,6 +7,7 @@ use yii\rest\ActiveController;
 use yii\filters\auth\HttpBearerAuth;
 use yii\filters\Cors;
 use app\components\Rbac;
+use app\components\AuditLogger;
 use yii\web\ForbiddenHttpException;
 
 class RoleController extends ActiveController
@@ -134,9 +135,23 @@ class RoleController extends ActiveController
 
         Yii::$app->response->statusCode = 201;
 
-        return \app\models\Role::find()
+        $createdRole = \app\models\Role::find()
             ->where(['id' => $role->id])
             ->with('permissions')
             ->one();
+
+        AuditLogger::log(
+            'role',
+            (int) $role->id,
+            'created',
+            null,
+            [
+                'name' => $role->name,
+                'description' => $role->description,
+                'permission_ids' => $permissionIds,
+            ]
+        );
+
+        return $createdRole;
     }
 }

@@ -229,9 +229,6 @@ function RolesPermissions({ initialSelectedRole }) {
       setLoading(true)
       setError('')
 
-      // const headers = {
-      //   Authorization: 'Bearer user1-test-token-12345',
-      // }
 
       const [rolesResponse, permissionsResponse] = await Promise.all([
         apiFetch('/roles'),
@@ -239,14 +236,29 @@ function RolesPermissions({ initialSelectedRole }) {
       ])
 
       if (!rolesResponse.ok) {
-        throw new Error(`Failed to load roles (${rolesResponse.status})`)
+        if (rolesResponse.status === 403) {
+          throw new Error(
+            'You are not authorized to access this section.'
+          )
+        }
+
+        throw new Error(
+          `Failed to load roles (${rolesResponse.status})`
+        )
       }
 
       if (!permissionsResponse.ok) {
+        if (permissionsResponse.status === 403) {
+          throw new Error(
+            'You are not authorized to access this section.'
+          )
+        }
+
         throw new Error(
           `Failed to load permissions (${permissionsResponse.status})`
         )
       }
+      
 
       const rolesData = await rolesResponse.json()
       const permissionsData = await permissionsResponse.json()

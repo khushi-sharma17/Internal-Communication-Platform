@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { apiFetch } from '../../api/api'
 
 function TeamDetails({
   team,
@@ -46,14 +47,10 @@ function TeamDetails({
       setError('')
       setSuccess('')
 
-      const response = await fetch(
-        `http://localhost:8080/teams/${team.id}`,
+      const response = await apiFetch(
+        `/teams/${team.id}`,
         {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: 'Bearer user1-test-token-12345',
-          },
           body: JSON.stringify({
             name: name.trim(),
             description: description.trim(),
@@ -62,6 +59,12 @@ function TeamDetails({
       )
 
       if (!response.ok) {
+        if (response.status === 403) {
+          throw new Error(
+            'You are not authorized to perform this action.'
+          )
+        }
+
         throw new Error(
           `Failed to update team (${response.status})`
         )
@@ -103,15 +106,12 @@ function TeamDetails({
       setError('')
       setSuccess('')
 
-      const response = await fetch(
-        `http://localhost:8080/teams/${team.id}`,
-        {
-          method: 'DELETE',
-          headers: {
-            Authorization: 'Bearer user1-test-token-12345',
-          },
-        }
-      )
+     const response = await apiFetch(
+      `/teams/${team.id}`,
+      {
+        method: 'DELETE',
+      }
+    )
 
       if (!response.ok) {
         let data = {}
@@ -120,6 +120,12 @@ function TeamDetails({
           data = await response.json()
         } catch {
           // DELETE may return an empty response
+        }
+
+        if (response.status === 403) {
+          throw new Error(
+            'You are not authorized to perform this action.'
+          )
         }
 
         throw new Error(

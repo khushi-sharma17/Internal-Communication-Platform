@@ -7,6 +7,7 @@ use app\models\User;
 use yii\rest\Controller;
 use yii\filters\auth\HttpBearerAuth;
 use yii\filters\Cors;
+use yii\web\ForbiddenHttpException;
 
 class UserController extends Controller
 {
@@ -97,6 +98,16 @@ class UserController extends Controller
 
     public function actionUpdate($id)
     {
+
+        if (!\app\components\Rbac::hasPermission(
+            Yii::$app->user->id,
+            'manage_users'
+        )) {
+            throw new ForbiddenHttpException(
+                'You are not authorized to manage users.'
+            );
+        }
+
         $user = User::findOne($id);
 
         if (!$user) {

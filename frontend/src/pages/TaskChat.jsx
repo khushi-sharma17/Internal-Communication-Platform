@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
+import { apiFetch } from '../api/api'
+import { useAuth } from '../context/AuthContext'
 
 function TaskChat({ task }) {
+  const { user } = useAuth()
   const [messages, setMessages] = useState([])
   const [message, setMessage] = useState('')
   const [replyingTo, setReplyingTo] = useState(null)
@@ -20,13 +23,8 @@ function TaskChat({ task }) {
     }
 
     try {
-      const response = await fetch(
-        `http://localhost:8080/conversations?task_id=${task.id}`,
-        {
-          headers: {
-            Authorization: 'Bearer user1-test-token-12345',
-          },
-        }
+      const response = await apiFetch(
+          `/conversations?task_id=${task.id}`
       )
 
       if (!response.ok) {
@@ -49,17 +47,13 @@ function TaskChat({ task }) {
         return
       }
 
-      const createResponse = await fetch(
-        'http://localhost:8080/conversations/create-task-chat',
+      const createResponse = await apiFetch(
+        '/conversations/create-task-chat',
         {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: 'Bearer user1-test-token-12345',
-          },
-          body: JSON.stringify({
-            task_id: task.id,
-          }),
+            method: 'POST',
+            body: JSON.stringify({
+                task_id: task.id,
+            }),
         }
       )
 
@@ -86,13 +80,8 @@ function TaskChat({ task }) {
     }
 
     try {
-      const response = await fetch(
-        `http://localhost:8080/messages?conversation_id=${conversationId}`,
-        {
-          headers: {
-            Authorization: 'Bearer user1-test-token-12345',
-          },
-        }
+      const response = await apiFetch(
+        `/messages?conversation_id=${conversationId}`
       )
 
       if (!response.ok) {
@@ -125,15 +114,11 @@ function TaskChat({ task }) {
 
   const markMessageAsRead = async (messageId) => {
     try {
-        await fetch('http://localhost:8080/message-read', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: 'Bearer user1-test-token-12345',
-        },
-        body: JSON.stringify({
-            message_id: messageId,
-        }),
+        await apiFetch('/message-read', {
+            method: 'POST',
+            body: JSON.stringify({
+                message_id: messageId,
+            }),
         })
     } catch (error) {
         console.error('Error marking task message as read:', error)
@@ -169,18 +154,14 @@ function TaskChat({ task }) {
     }
 
     try {
-        const response = await fetch(
-        `http://localhost:8080/messages/${editingMessage.id}`,
-        {
-            method: 'PUT',
-            headers: {
-            'Content-Type': 'application/json',
-            Authorization: 'Bearer user1-test-token-12345',
-            },
-            body: JSON.stringify({
-            message: message.trim(),
-            }),
-        }
+        const response = await apiFetch(
+            `/messages/${editingMessage.id}`,
+            {
+                method: 'PUT',
+                body: JSON.stringify({
+                    message: message.trim(),
+                }),
+            }
         )
 
         if (!response.ok) {
@@ -205,18 +186,15 @@ function TaskChat({ task }) {
     }
 
     try {
-        const response = await fetch(
-        `http://localhost:8080/messages/${deletingMessage.id}`,
-        {
-            method: 'DELETE',
-            headers: {
-            Authorization: 'Bearer user1-test-token-12345',
-            },
-        }
+        const response = await apiFetch(
+            `/messages/${deletingMessage.id}`,
+            {
+                method: 'DELETE',
+            }
         )
 
         if (!response.ok) {
-        throw new Error('Failed to delete message')
+          throw new Error('Failed to delete message')
         }
 
         await response.json()
@@ -238,43 +216,36 @@ function TaskChat({ task }) {
 
         const existingReaction = messageItem?.reactions?.find(
         (item) =>
-            Number(item.user_id) === 1 &&
+            Number(item.user_id) === Number(JSON.parse(localStorage.getItem('user') || 'null')?.id) &&
             item.reaction === reaction
         )
 
         if (existingReaction) {
-        const response = await fetch(
-            `http://localhost:8080/message-reaction/${existingReaction.id}`,
-            {
-            method: 'DELETE',
-            headers: {
-                Authorization: 'Bearer user1-test-token-12345',
-            },
-            }
-        )
-
-        if (!response.ok) {
-            throw new Error('Failed to remove reaction')
-        }
+          const response = await apiFetch(
+              `/message-reaction/${existingReaction.id}`,
+              {
+                  method: 'DELETE',
+              }
+          )
+          
+          if (!response.ok) {
+              throw new Error('Failed to remove reaction')
+          }
         } else {
-        const response = await fetch(
-            'http://localhost:8080/message-reaction',
-            {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: 'Bearer user1-test-token-12345',
-            },
-            body: JSON.stringify({
-                message_id: messageId,
-                reaction: reaction,
-            }),
-            }
-        )
+          const response = await apiFetch(
+              '/message-reaction',
+              {
+                  method: 'POST',
+                  body: JSON.stringify({
+                      message_id: messageId,
+                      reaction: reaction,
+                  }),
+              }
+          )
 
-        if (!response.ok) {
-            throw new Error('Failed to add reaction')
-        }
+          if (!response.ok) {
+              throw new Error('Failed to add reaction')
+          }
         }
 
         await fetchMessages()
@@ -294,18 +265,14 @@ function TaskChat({ task }) {
     }
 
     try {
-      const response = await fetch(
-        'http://localhost:8080/messages',
+      const response = await apiFetch(
+        '/messages',
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: 'Bearer user1-test-token-12345',
-          },
           body: JSON.stringify({
-            conversation_id: conversationId,
-            message: message,
-            parent_message_id: replyingTo ? replyingTo.id : null,
+              conversation_id: conversationId,
+              message: message,
+              parent_message_id: replyingTo ? replyingTo.id : null,
           }),
         }
       )

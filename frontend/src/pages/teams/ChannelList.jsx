@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { apiFetch } from '../../api/api'
 
 function ChannelList({
   hasPermission,
@@ -31,16 +32,17 @@ function ChannelList({
       setLoading(true)
       setError('')
 
-      const response = await fetch(
-        `http://localhost:8080/teams/${selectedTeam.id}/channels`,
-        {
-          headers: {
-            Authorization: 'Bearer user1-test-token-12345',
-          },
-        }
+      const response = await apiFetch(
+        `/teams/${selectedTeam.id}/channels`
       )
 
       if (!response.ok) {
+        if (response.status === 403) {
+          throw new Error(
+            'You are not authorized to access this section.'
+          )
+        }
+
         throw new Error(
           `Failed to load channels (${response.status})`
         )
@@ -78,14 +80,10 @@ function ChannelList({
     try {
       setCreating(true)
 
-      const response = await fetch(
-        'http://localhost:8080/channels',
+      const response = await apiFetch(
+        '/channels',
         {
           method: 'POST',
-          headers: {
-            Authorization: 'Bearer user1-test-token-12345',
-            'Content-Type': 'application/json',
-          },
           body: JSON.stringify({
             team_id: selectedTeam.id,
             name: channelName.trim(),

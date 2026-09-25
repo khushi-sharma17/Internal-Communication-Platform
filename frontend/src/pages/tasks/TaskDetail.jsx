@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import './TaskDetail.css'
 
+import './TaskDetail.css'
+import { apiFetch } from '../../api/api'
 
 function TaskDetail({ task, onBack, onOpenChat }) {
 
@@ -74,11 +75,7 @@ function TaskDetail({ task, onBack, onOpenChat }) {
 
 
     useEffect(() => {
-        fetch('http://localhost:8080/users', {
-        headers: {
-            Authorization: 'Bearer user1-test-token-12345',
-        },
-        })
+        apiFetch('/users')
         .then((response) => {
             if (!response.ok) {
             throw new Error(`Failed to fetch users (${response.status})`)
@@ -102,14 +99,7 @@ function TaskDetail({ task, onBack, onOpenChat }) {
         setLoadingDependencies(true)
         setDependencyMessage('')
 
-        fetch(
-            `http://localhost:8080/task-dependencies?task_id=${task.id}`,
-            {
-            headers: {
-                Authorization: 'Bearer user1-test-token-12345',
-            },
-            }
-        )
+        apiFetch(`/task-dependencies?task_id=${task.id}`)
         .then((response) => {
         if (!response.ok) {
             throw new Error(
@@ -138,11 +128,7 @@ function TaskDetail({ task, onBack, onOpenChat }) {
 
 
     useEffect(() => {
-        fetch('http://localhost:8080/tasks', {
-            headers: {
-            Authorization: 'Bearer user1-test-token-12345',
-            },
-        })
+        apiFetch('/tasks')
         .then((response) => {
         if (!response.ok) {
             throw new Error(`Failed to load tasks (${response.status})`)
@@ -166,14 +152,7 @@ function TaskDetail({ task, onBack, onOpenChat }) {
         setLoadingActivities(true)
         setActivityMessage('')
 
-        fetch(
-            `http://localhost:8080/task-activities?task_id=${task.id}`,
-            {
-            headers: {
-                Authorization: 'Bearer user1-test-token-12345',
-            },
-            }
-        )
+        apiFetch(`/task-activities?task_id=${task.id}`)
         .then((response) => {
         if (!response.ok) {
             throw new Error(
@@ -202,14 +181,7 @@ function TaskDetail({ task, onBack, onOpenChat }) {
 
         setLoadingWatchers(true)
 
-        fetch(
-            `http://localhost:8080/task-watchers?task_id=${task.id}`,
-            {
-                headers: {
-                    Authorization: 'Bearer user1-test-token-12345',
-                },
-            }
-        )
+        apiFetch(`/task-watchers?task_id=${task.id}`)
             .then((response) => {
                 if (!response.ok) {
                     throw new Error(
@@ -234,11 +206,7 @@ function TaskDetail({ task, onBack, onOpenChat }) {
 
 
     useEffect(() => {
-        fetch('http://localhost:8080/teams', {
-            headers: {
-                Authorization: 'Bearer user1-test-token-12345',
-            },
-        })
+        apiFetch('/teams')
             .then((response) => {
                 if (!response.ok) {
                     throw new Error(`Failed to load teams (${response.status})`)
@@ -263,14 +231,7 @@ function TaskDetail({ task, onBack, onOpenChat }) {
 
         setLoadingAssignedTeams(true)
 
-        fetch(
-            `http://localhost:8080/task-assignments?task_id=${task.id}`,
-            {
-                headers: {
-                    Authorization: 'Bearer user1-test-token-12345',
-                },
-            }
-        )
+        apiFetch(`/task-assignments?task_id=${task.id}`)
             .then((response) => {
                 if (!response.ok) {
                     throw new Error(
@@ -308,23 +269,17 @@ function TaskDetail({ task, onBack, onOpenChat }) {
             setSavingTask(true)
             setEditMessage('')
 
-            const response = await fetch(
-                `http://localhost:8080/tasks/${task.id}`,
-                {
+            const response = await apiFetch(`/tasks/${task.id}`, {
                     method: 'PATCH',
-                    headers: {
-                        Authorization: 'Bearer user1-test-token-12345',
-                        'Content-Type': 'application/json',
-                    },
                     body: JSON.stringify({
-                        title: editTitle,
-                        description: editDescription,
-                        priority: editPriority,
-                        due_date: editDueDate
-                            ? Math.floor(
-                                new Date(editDueDate).getTime() / 1000
-                            )
-                            : null,
+                    title: editTitle,
+                    description: editDescription,
+                    priority: editPriority,
+                    due_date: editDueDate
+                        ? Math.floor(
+                            new Date(editDueDate).getTime() / 1000
+                        )
+                        : null,
                     }),
                 }
             )
@@ -342,13 +297,8 @@ function TaskDetail({ task, onBack, onOpenChat }) {
             setShowEditForm(false)
 
             // Refresh activities because the backend logs task changes.
-            const activityResponse = await fetch(
-                `http://localhost:8080/task-activities?task_id=${task.id}`,
-                {
-                    headers: {
-                        Authorization: 'Bearer user1-test-token-12345',
-                    },
-                }
+            const activityResponse = await apiFetch(
+                `/task-activities?task_id=${task.id}`
             )
 
             if (activityResponse.ok) {
@@ -378,15 +328,9 @@ function TaskDetail({ task, onBack, onOpenChat }) {
             setSavingActivity(true)
             setActivityFormMessage('')
 
-            const response = await fetch(
-                'http://localhost:8080/task-activities',
-                {
-                    method: 'POST',
-                    headers: {
-                        Authorization: 'Bearer user1-test-token-12345',
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
+            const response = await apiFetch('/task-activities', {
+                        method: 'POST',
+                        body: JSON.stringify({
                         task_id: task.id,
                         action: newActivityAction,
                         details: newActivityDetails.trim(),
@@ -410,13 +354,8 @@ function TaskDetail({ task, onBack, onOpenChat }) {
             setShowActivityForm(false)
 
             // Refresh activity list.
-            const activityResponse = await fetch(
-                `http://localhost:8080/task-activities?task_id=${task.id}`,
-                {
-                    headers: {
-                        Authorization: 'Bearer user1-test-token-12345',
-                    },
-                }
+            const activityResponse = await apiFetch(
+                `/task-activities?task_id=${task.id}`
             )
 
             if (activityResponse.ok) {
@@ -792,19 +731,12 @@ function TaskDetail({ task, onBack, onOpenChat }) {
                 setSavingStatus(true)
                 setStatusMessage('')
 
-                const response = await fetch(
-                    `http://localhost:8080/tasks/${task.id}`,
-                    {
+                const response = await apiFetch(`/tasks/${task.id}`, {
                     method: 'PATCH',
-                    headers: {
-                        Authorization: 'Bearer user1-test-token-12345',
-                        'Content-Type': 'application/json',
-                    },
                     body: JSON.stringify({
                         status: selectedStatus,
                     }),
-                    }
-                )
+                })
 
                 if (!response.ok) {
                     const data = await response.json().catch(() => null)
@@ -817,13 +749,8 @@ function TaskDetail({ task, onBack, onOpenChat }) {
 
                 setStatusMessage('Status updated successfully.')
 
-                const activityResponse = await fetch(
-                    `http://localhost:8080/task-activities?task_id=${task.id}`,
-                    {
-                        headers: {
-                            Authorization: 'Bearer user1-test-token-12345',
-                        },
-                    }
+                const activityResponse = await apiFetch(
+                    `/task-activities?task_id=${task.id}`
                 )
 
                 if (activityResponse.ok) {
@@ -1080,14 +1007,8 @@ function TaskDetail({ task, onBack, onOpenChat }) {
                         setSavingAssignee(true)
                         setAssigneeMessage('')
 
-                        const response = await fetch(
-                        `http://localhost:8080/tasks/${task.id}`,
-                        {
+                        const response = await apiFetch(`/tasks/${task.id}`, {
                             method: 'PATCH',
-                            headers: {
-                            Authorization: 'Bearer user1-test-token-12345',
-                            'Content-Type': 'application/json',
-                            },
                             body: JSON.stringify({
                             assigned_to: selectedAssignee
                                 ? Number(selectedAssignee)
@@ -1107,13 +1028,8 @@ function TaskDetail({ task, onBack, onOpenChat }) {
 
                         setAssigneeMessage('Assignee updated successfully.')
 
-                        const activityResponse = await fetch(
-                            `http://localhost:8080/task-activities?task_id=${task.id}`,
-                            {
-                                headers: {
-                                    Authorization: 'Bearer user1-test-token-12345',
-                                },
-                            }
+                        const activityResponse = await apiFetch(
+                            `/task-activities?task_id=${task.id}`
                         )
 
                         if (activityResponse.ok) {
@@ -1171,13 +1087,8 @@ function TaskDetail({ task, onBack, onOpenChat }) {
                                 setTeamMessage('')
 
                                 // Get existing assignments for this task
-                                const existingResponse = await fetch(
-                                    `http://localhost:8080/task-assignments?task_id=${task.id}`,
-                                    {
-                                        headers: {
-                                            Authorization: 'Bearer user1-test-token-12345',
-                                        },
-                                    }
+                                const existingResponse = await apiFetch(
+                                    `/task-assignments?task_id=${task.id}`
                                 )
 
                                 const existingAssignments = await existingResponse.json()
@@ -1191,13 +1102,10 @@ function TaskDetail({ task, onBack, onOpenChat }) {
 
                                 // Remove old team assignments
                                 for (const assignment of existingTeamAssignments) {
-                                    const deleteResponse = await fetch(
-                                        `http://localhost:8080/task-assignments/${assignment.id}`,
+                                    const deleteResponse = await apiFetch(
+                                        `/task-assignments/${assignment.id}`,
                                         {
                                             method: 'DELETE',
-                                            headers: {
-                                                Authorization: 'Bearer user1-test-token-12345',
-                                            },
                                         }
                                     )
 
@@ -1209,15 +1117,9 @@ function TaskDetail({ task, onBack, onOpenChat }) {
                                 }
 
                                 // Create the new team assignment
-                                const response = await fetch(
-                                    'http://localhost:8080/task-assignments',
-                                    {
-                                        method: 'POST',
-                                        headers: {
-                                            Authorization: 'Bearer user1-test-token-12345',
-                                            'Content-Type': 'application/json',
-                                        },
-                                        body: JSON.stringify({
+                                const response = await apiFetch('/task-assignments', {
+                                            method: 'POST',
+                                            body: JSON.stringify({
                                             task_id: task.id,
                                             team_id: Number(selectedTeam),
                                             user_id: null,
@@ -1242,13 +1144,8 @@ function TaskDetail({ task, onBack, onOpenChat }) {
                                 setSelectedTeam('')
 
                                 // Refresh displayed team assignments
-                                const refreshedResponse = await fetch(
-                                    `http://localhost:8080/task-assignments?task_id=${task.id}`,
-                                    {
-                                        headers: {
-                                            Authorization: 'Bearer user1-test-token-12345',
-                                        },
-                                    }
+                                const refreshedResponse = await apiFetch(
+                                    `/task-assignments?task_id=${task.id}`
                                 )
 
                                 if (refreshedResponse.ok) {
@@ -1264,13 +1161,8 @@ function TaskDetail({ task, onBack, onOpenChat }) {
                                 }
 
                                 // Refresh activity
-                                const activityResponse = await fetch(
-                                    `http://localhost:8080/task-activities?task_id=${task.id}`,
-                                    {
-                                        headers: {
-                                            Authorization: 'Bearer user1-test-token-12345',
-                                        },
-                                    }
+                                const activityResponse = await apiFetch(
+                                    `/task-activities?task_id=${task.id}`
                                 )
 
                                 if (activityResponse.ok) {
@@ -1357,14 +1249,10 @@ function TaskDetail({ task, onBack, onOpenChat }) {
                                             className="remove-team-button"
                                             onClick={async () => {
                                                 try {
-                                                    const response = await fetch(
-                                                        `http://localhost:8080/task-assignments/${assignment.id}`,
+                                                    const response = await apiFetch(
+                                                        `/task-assignments/${assignment.id}`,
                                                         {
                                                             method: 'DELETE',
-                                                            headers: {
-                                                                Authorization:
-                                                                    'Bearer user1-test-token-12345',
-                                                            },
                                                         }
                                                     )
 
@@ -1444,17 +1332,13 @@ function TaskDetail({ task, onBack, onOpenChat }) {
                         setSavingWatcher(true)
                         setWatcherMessage('')
 
-                        const response = await fetch(
-                        'http://localhost:8080/task-watchers',
+                        const response = await apiFetch(
+                            '/task-watchers',
                             {
                                 method: 'POST',
-                                headers: {
-                                Authorization: 'Bearer user1-test-token-12345',
-                                'Content-Type': 'application/json',
-                                },
                                 body: JSON.stringify({
-                                task_id: task.id,
-                                user_id: Number(selectedWatcher),
+                                    task_id: task.id,
+                                    user_id: Number(selectedWatcher),
                                 }),
                             }
                         )
@@ -1599,18 +1483,14 @@ function TaskDetail({ task, onBack, onOpenChat }) {
                             try {
                             setSavingDependency(true)
 
-                            const response = await fetch(
-                                'http://localhost:8080/task-dependencies',
+                            const response = await apiFetch(
+                                '/task-dependencies',
                                 {
-                                method: 'POST',
-                                headers: {
-                                    Authorization: 'Bearer user1-test-token-12345',
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                    task_id: task.id,
-                                    depends_on_task_id: Number(selectedDependency),
-                                }),
+                                    method: 'POST',
+                                    body: JSON.stringify({
+                                        task_id: task.id,
+                                        depends_on_task_id: Number(selectedDependency),
+                                    }),
                                 }
                             )
 
@@ -1631,13 +1511,8 @@ function TaskDetail({ task, onBack, onOpenChat }) {
                             setSelectedDependency('')
                             setShowDependencyForm(false)
 
-                            const activityResponse = await fetch(
-                                `http://localhost:8080/task-activities?task_id=${task.id}`,
-                                {
-                                    headers: {
-                                        Authorization: 'Bearer user1-test-token-12345',
-                                    },
-                                }
+                            const activityResponse = await apiFetch(
+                                `/task-activities?task_id=${task.id}`
                             )
 
                             if (activityResponse.ok) {
@@ -1703,13 +1578,10 @@ function TaskDetail({ task, onBack, onOpenChat }) {
                             className="remove-dependency-button"
                             onClick={async () => {
                                 try {
-                                const response = await fetch(
-                                    `http://localhost:8080/task-dependencies/${dependency.id}`,
+                                const response = await apiFetch(
+                                    `/task-dependencies/${dependency.id}`,
                                     {
-                                    method: 'DELETE',
-                                    headers: {
-                                        Authorization: 'Bearer user1-test-token-12345',
-                                    },
+                                        method: 'DELETE',
                                     }
                                 )
 
@@ -1726,13 +1598,8 @@ function TaskDetail({ task, onBack, onOpenChat }) {
                                     previous.filter((item) => item.id !== dependency.id)
                                 )
                                 
-                                const activityResponse = await fetch(
-                                    `http://localhost:8080/task-activities?task_id=${task.id}`,
-                                    {
-                                        headers: {
-                                            Authorization: 'Bearer user1-test-token-12345',
-                                        },
-                                    }
+                                const activityResponse = await apiFetch(
+                                    `/task-activities?task_id=${task.id}`
                                 )
 
                                 if (activityResponse.ok) {

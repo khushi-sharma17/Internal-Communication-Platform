@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
+import { apiFetch } from '../api/api'
+import { useAuth } from '../context/AuthContext'
 
 function DirectChat({ selectedUser }) {
+  const { user } = useAuth()
   const [messages, setMessages] = useState([])
   const [message, setMessage] = useState('')
   const [replyingTo, setReplyingTo] = useState(null)
@@ -35,14 +38,7 @@ function DirectChat({ selectedUser }) {
         setLoading(true)
       }
 
-      const conversationResponse = await fetch(
-        'http://localhost:8080/conversations',
-        {
-          headers: {
-            Authorization: 'Bearer user1-test-token-12345',
-          },
-        }
-      )
+      const conversationResponse = await apiFetch('/conversations')
 
       if (!conversationResponse.ok) {
         throw new Error('Failed to fetch conversations')
@@ -57,13 +53,8 @@ function DirectChat({ selectedUser }) {
       )
 
       for (const item of oneToOneConversations) {
-        const participantsResponse = await fetch(
-          `http://localhost:8080/conversation-participants?conversation_id=${item.id}`,
-          {
-            headers: {
-              Authorization: 'Bearer user1-test-token-12345',
-            },
-          }
+        const participantsResponse = await apiFetch(
+          `/conversation-participants?conversation_id=${item.id}`
         )
 
         if (!participantsResponse.ok) {
@@ -74,7 +65,7 @@ function DirectChat({ selectedUser }) {
 
         const hasCurrentUser = participants.some(
           (participant) =>
-            Number(participant.user_id) === 1
+            Number(participant.user_id) === Number(user?.id)
         )
 
         const hasSelectedUser = participants.some(
@@ -114,17 +105,13 @@ function DirectChat({ selectedUser }) {
           selectedUser
         )
 
-        const createResponse = await fetch(
-          'http://localhost:8080/conversations',
+        const createResponse = await apiFetch(
+          '/conversations',
           {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: 'Bearer user1-test-token-12345',
-            },
-            body: JSON.stringify({
-              user_id: Number(selectedUser.id),
-            }),
+              method: 'POST',
+              body: JSON.stringify({
+                  user_id: Number(selectedUser.id),
+              }),
           }
         )
 
@@ -156,13 +143,8 @@ function DirectChat({ selectedUser }) {
 
       setConversationId(currentConversationId)
 
-      const response = await fetch(
-        `http://localhost:8080/messages?conversation_id=${currentConversationId}`,
-        {
-          headers: {
-            Authorization: 'Bearer user1-test-token-12345',
-          },
-        }
+      const response = await apiFetch(
+        `/messages?conversation_id=${currentConversationId}`
       )
 
       if (!response.ok) {
@@ -222,15 +204,11 @@ function DirectChat({ selectedUser }) {
 
   const markMessageAsRead = async (messageId) => {
     try {
-        await fetch('http://localhost:8080/message-read', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: 'Bearer user1-test-token-12345',
-        },
-        body: JSON.stringify({
-            message_id: messageId,
-        }),
+        await apiFetch('/message-read', {
+            method: 'POST',
+            body: JSON.stringify({
+                message_id: messageId,
+            }),
         })
     } catch (error) {
         console.error('Error marking direct message as read:', error)
@@ -277,35 +255,30 @@ function DirectChat({ selectedUser }) {
 
   const handleEdit = async () => {
     if (!editingMessage || !message.trim()) {
-        return
+      return
     }
 
     try {
-        const response = await fetch(
-        `http://localhost:8080/messages/${editingMessage.id}`,
+      const response = await apiFetch(
+        `/messages/${editingMessage.id}`,
         {
-            method: 'PUT',
-            headers: {
-            'Content-Type': 'application/json',
-            Authorization: 'Bearer user1-test-token-12345',
-            },
-            body: JSON.stringify({
+          method: 'PUT',
+          body: JSON.stringify({
             message: message.trim(),
-            }),
+          }),
         }
-        )
+      )
 
-        if (!response.ok) {
+      if (!response.ok) {
         throw new Error('Failed to edit direct message')
-        }
+      }
 
-        await response.json()
-
-        setMessage('')
-        setEditingMessage(null)
-        await fetchMessages()
+      await response.json()
+      setMessage('')
+      setEditingMessage(null)
+      await fetchMessages()
     } catch (error) {
-        console.error('Error editing direct message:', error)
+      console.error('Error editing direct message:', error)
     }
   }
 
@@ -313,30 +286,26 @@ function DirectChat({ selectedUser }) {
 
   const handleDelete = async () => {
     if (!deletingMessage) {
-        return
+      return
     }
 
     try {
-        const response = await fetch(
-        `http://localhost:8080/messages/${deletingMessage.id}`,
+      const response = await apiFetch(
+        `/messages/${deletingMessage.id}`,
         {
-            method: 'DELETE',
-            headers: {
-            Authorization: 'Bearer user1-test-token-12345',
-            },
+          method: 'DELETE',
         }
-        )
+      )
 
-        if (!response.ok) {
+      if (!response.ok) {
         throw new Error('Failed to delete message')
-        }
+      }
 
-        await response.json()
-
-        setDeletingMessage(null)
-        await fetchMessages()
+      await response.json()
+      setDeletingMessage(null)
+      await fetchMessages()
     } catch (error) {
-        console.error('Error deleting message:', error)
+      console.error('Error deleting message:', error)
     }
   }
 
@@ -345,57 +314,50 @@ function DirectChat({ selectedUser }) {
 
 
     const handleReaction = async (messageId, reaction) => {
-        try {
-        const currentMessage = messages.find(
-            (item) => item.id === messageId
+    try {
+      const currentMessage = messages.find(
+        (item) => item.id === messageId
+      )
+
+      const existingReaction = currentMessage?.reactions?.find(
+        (item) =>
+          Number(item.user_id) === Number(user?.id) &&
+          item.reaction === reaction
+      )
+
+      if (existingReaction) {
+        const response = await apiFetch(
+          `/message-reaction/${existingReaction.id}`,
+          {
+            method: 'DELETE',
+          }
         )
 
-        const existingReaction = currentMessage?.reactions?.find(
-            (item) =>
-            item.user_id === 1 &&
-            item.reaction === reaction
+        if (!response.ok) {
+          throw new Error('Failed to remove reaction')
+        }
+      } else {
+        const response = await apiFetch(
+          '/message-reaction',
+          {
+            method: 'POST',
+            body: JSON.stringify({
+              message_id: messageId,
+              reaction: reaction,
+            }),
+          }
         )
 
-        if (existingReaction) {
-            const response = await fetch(
-            `http://localhost:8080/message-reaction/${existingReaction.id}`,
-            {
-                method: 'DELETE',
-                headers: {
-                Authorization: 'Bearer user1-test-token-12345',
-                },
-            }
-            )
-
-            if (!response.ok) {
-            throw new Error('Failed to remove reaction')
-            }
-        } else {
-            const response = await fetch(
-            'http://localhost:8080/message-reaction',
-            {
-                method: 'POST',
-                headers: {
-                'Content-Type': 'application/json',
-                Authorization: 'Bearer user1-test-token-12345',
-                },
-                body: JSON.stringify({
-                message_id: messageId,
-                reaction: reaction,
-                }),
-            }
-            )
-
-            if (!response.ok) {
-            throw new Error('Failed to add reaction')
-            }
+        if (!response.ok) {
+          throw new Error('Failed to add reaction')
         }
+      }
 
-        await fetchMessages()
-        } catch (error) {
-        console.error('Error handling reaction:', error)
-        }
+      await fetchMessages()
+    } catch (error) {
+      console.error('Error handling reaction:', error)
     }
+  }
 
 
 
@@ -408,18 +370,14 @@ function DirectChat({ selectedUser }) {
     }
 
     try {
-      const response = await fetch(
-        'http://localhost:8080/messages',
+      const response = await apiFetch(
+        '/messages',
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: 'Bearer user1-test-token-12345',
-          },
           body: JSON.stringify({
-          conversation_id: conversationId,
-          message: message,
-          parent_message_id: replyingTo ? replyingTo.id : null,
+            conversation_id: conversationId,
+            message: message,
+            parent_message_id: replyingTo ? replyingTo.id : null,
           }),
         }
       )
@@ -502,25 +460,37 @@ function DirectChat({ selectedUser }) {
           messages.map((item) => (
             <div
               className={`message ${
-                item.sender_id === 1
+                Number(item.sender_id) === Number(user?.id)
                   ? 'own-message'
                   : ''
               }`}
               key={item.id}
             >
               <strong>
-                User {item.sender_id}
+                {Number(item.sender_id) === Number(user?.id)
+                  ? user?.name
+                  : selectedUser?.name || `User ${item.sender_id}`}
               </strong>
 
               {item.parent_message_id && (
                 <div className="reply-reference">
                     <strong>
-                    Replying to User {
-                        messages.find(
-                        (parent) => parent.id === item.parent_message_id
-                        )?.sender_id
+                    Replying to {
+                      (() => {
+                        const parentMessage = messages.find(
+                          (parent) => parent.id === item.parent_message_id
+                        )
+
+                        if (!parentMessage) {
+                          return 'Unknown user'
+                        }
+
+                        return Number(parentMessage.sender_id) === Number(user?.id)
+                          ? user?.name
+                          : selectedUser?.name || `User ${parentMessage.sender_id}`
+                      })()
                     }
-                    </strong>
+                  </strong>
 
                     <span>
                     {
@@ -552,7 +522,7 @@ function DirectChat({ selectedUser }) {
                         const reactedByMe = item.reactions.some(
                         (r) =>
                             r.reaction === reactionType &&
-                            Number(r.user_id) === 1
+                            Number(r.user_id) === Number(user?.id)
                         )
 
                         return (
@@ -600,7 +570,7 @@ function DirectChat({ selectedUser }) {
                     Reply
                     </button>
 
-                    {item.sender_id === 1 && (
+                    {Number(item.sender_id) === Number(user?.id) && (
                     <button
                         className="reply-button"
                         onClick={() => {
@@ -612,7 +582,7 @@ function DirectChat({ selectedUser }) {
                     </button>
                     )}
 
-                    {item.sender_id === 1 && (
+                    {Number(item.sender_id) === Number(user?.id) && (
                     <button
                         className="reply-button"
                         onClick={() => setDeletingMessage(item)}
@@ -674,17 +644,26 @@ function DirectChat({ selectedUser }) {
 
       {replyingTo && (
         <div className="reply-preview">
+            
             <div>
-            <strong>Replying to User {replyingTo.sender_id}</strong>
-            <span>{replyingTo.message}</span>
+              <strong>
+                Replying to {
+                  Number(replyingTo.sender_id) === Number(user?.id)
+                    ? user?.name
+                    : selectedUser?.name || `User ${replyingTo.sender_id}`
+                }
+              </strong>
+
+              <span>{replyingTo.message}</span>
             </div>
 
             <button
-            type="button"
-            onClick={() => setReplyingTo(null)}
-            >
-            Cancel
+              type="button"
+              onClick={() => setReplyingTo(null)}
+              >
+              Cancel
             </button>
+            
         </div>
         )}
 

@@ -96,7 +96,15 @@ function Users({ initialSelectedUser }) {
       const userRolesResponse = await apiFetch('/user-roles')
 
       if (!userRolesResponse.ok) {
-        throw new Error('Failed to fetch user roles')
+        if (userRolesResponse.status === 403) {
+          throw new Error(
+            'You are not authorized to access this section.'
+          )
+        }
+
+        throw new Error(
+          `Failed to load user roles (${userRolesResponse.status})`
+        )
       }
 
       const userRolesData = await userRolesResponse.json()

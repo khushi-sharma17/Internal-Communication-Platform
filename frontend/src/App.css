@@ -1263,3 +1263,34 @@ input {
     padding: 24px 16px 28px;
   }
 }
+
+
+
+
+
+
+
+.sidebar-user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.sidebar-user-info strong,
+.sidebar-user-info small {
+  display: block;
+}
+
+.logout-button {
+  border: none;
+  background: transparent;
+  color: #ef4444;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 6px;
+}
+
+.logout-button:hover {
+  background: rgba(239, 68, 68, 0.1);
+}

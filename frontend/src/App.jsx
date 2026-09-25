@@ -9,8 +9,21 @@ import Tasks from './pages/tasks/Tasks'
 import TaskDetail from './pages/tasks/TaskDetail'
 import Meetings from './pages/meetings/Meetings'
 import Dashboard from './pages/dashboard/Dashboard'
+import { useAuth } from './context/AuthContext'
+import Login from './pages/auth/Login'
+import Signup from './pages/auth/Signup'
 
 function App() {
+
+  const {
+    isAuthenticated,
+    loading: authLoading,
+    user,
+    logout,
+  } = useAuth()
+
+  const [showSignup, setShowSignup] = useState(false)
+
 
   const [currentPage, setCurrentPage] = useState('team')
   const [permissions, setPermissions] = useState([])
@@ -79,6 +92,11 @@ function App() {
       setCurrentUser(null)
     }
   }
+
+
+  useEffect(() => {
+    setCurrentUser(user || null)
+  }, [user])
 
 
 
@@ -323,7 +341,9 @@ function App() {
 
       setChannelsLoading(true)
 
-      const response = await apiFetch('/channels')
+      const response = await apiFetch(
+        `/teams/${selectedTeam.id}/channels`
+      )
 
       if (!response.ok) {
         throw new Error(
@@ -335,9 +355,14 @@ function App() {
 
       setChannels(data)
 
-      // Select the first channel of the selected team
       if (data.length > 0) {
-        setSelectedChannel(data[0])
+        setSelectedChannel((currentChannel) => {
+          const stillExists = data.some(
+            (channel) => channel.id === currentChannel?.id
+          )
+
+          return stillExists ? currentChannel : data[0]
+        })
       } else {
         setSelectedChannel(null)
       }
@@ -383,9 +408,6 @@ function App() {
       console.log('Selected channel:', selectedChannel)
       console.log('Matching conversation:', conversation)
 
-      setActiveConversationId(conversation.id)
-
-
       if (!conversation) {
         setMessages([])
         setActiveConversationId(null)
@@ -393,6 +415,9 @@ function App() {
         setLoading(false)
         return
       }
+
+      setActiveConversationId(conversation.id)
+
 
       console.log('MESSAGE REQUEST CONVERSATION ID:', conversation.id)
 
@@ -743,6 +768,30 @@ function App() {
   }, [selectedChannel])
 
 
+  if (authLoading) {
+    return (
+      <div className="auth-page">
+        <div className="auth-card">
+          <div className="auth-header">
+            <h1>Loading...</h1>
+            <p>Checking your session</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return showSignup ? (
+      <Signup
+        onShowLogin={() => setShowSignup(false)}
+      />
+    ) : (
+      <Login
+        onShowSignup={() => setShowSignup(true)}
+      />
+    )
+  }
 
   return (
     <div className="app-layout">
@@ -958,12 +1007,24 @@ function App() {
 
 
         <div className="sidebar-footer">
-          <div className="user-avatar">U</div>
+          <div className="user-avatar">
+            {(currentUser?.name || 'U').charAt(0).toUpperCase()}
+          </div>
 
-          <div>
+          <div className="sidebar-user-info">
             <strong>{currentUser?.name || 'Loading...'}</strong>
             <small>Online</small>
           </div>
+
+          <button
+            type="button"
+            className="logout-button"
+            onClick={logout}
+            title="Logout"
+          >
+            Logout
+          </button>
+
         </div>
 
       </aside>
@@ -1001,6 +1062,7 @@ function App() {
               <Organization
                 initialSelectedUser={selectedUser}
                 initialSelectedRole={selectedRole}
+                hasPermission={hasPermission}
               />
             ) : currentPage === 'teams' ? (
               <Teams
@@ -1197,16 +1259,24 @@ function App() {
                     key={item.id}
                   >
                     <strong>
-                      User {item.sender_id}
+                      {users.find(
+                        (user) => Number(user.id) === Number(item.sender_id)
+                      )?.name || `User ${item.sender_id}`}
                     </strong>
 
                     {item.parent_message_id && (
                       <div className="reply-reference">
                         <strong>
-                          Replying to User {
-                            messages.find(
-                              (parent) => parent.id === item.parent_message_id
-                            )?.sender_id
+                          Replying to {
+                            users.find(
+                              (user) =>
+                                Number(user.id) ===
+                                Number(
+                                  messages.find(
+                                    (parent) => parent.id === item.parent_message_id
+                                  )?.sender_id
+                                )
+                            )?.name || 'Unknown user'
                           }
                         </strong>
 
@@ -1386,7 +1456,13 @@ function App() {
             {replyingTo && (
               <div className="reply-preview">
                 <div>
-                  <strong>Replying to User {replyingTo.sender_id}</strong>
+                  <strong>
+                  Replying to {
+                    users.find(
+                      (user) => Number(user.id) === Number(replyingTo.sender_id)
+                    )?.name || `User ${replyingTo.sender_id}`
+                  }
+                </strong>
                   <span>{replyingTo.message}</span>
                 </div>
 

@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { apiFetch } from '../../api/api'
 
 function ChannelDetails({
   channel,
@@ -22,6 +23,135 @@ function ChannelDetails({
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [deleting, setDeleting] = useState(false)
+
+  const [users, setUsers] = useState([])
+  const [usersLoading, setUsersLoading] = useState(false)
+  const [showAddMember, setShowAddMember] = useState(false)
+  const [selectedUserId, setSelectedUserId] = useState('')
+  const [addingMember, setAddingMember] = useState(false)
+  const [memberError, setMemberError] = useState('')
+  const [memberSuccess, setMemberSuccess] = useState('')
+
+
+
+  const fetchUsers = async () => {
+    try {
+      setUsersLoading(true)
+      setMemberError('')
+
+      const [usersResponse, membershipsResponse] = await Promise.all([
+        apiFetch('/users'),
+        apiFetch('/channel-memberships'),
+      ])
+
+      if (!usersResponse.ok) {
+        throw new Error(
+          usersResponse.status === 403
+            ? 'You are not authorized to view users.'
+            : `Failed to load users (${usersResponse.status})`
+        )
+      }
+
+      if (!membershipsResponse.ok) {
+        if (membershipsResponse.status === 403) {
+          throw new Error(
+            'You are not authorized to access this section.'
+          )
+        }
+
+        throw new Error(
+          `Failed to load channel members (${membershipsResponse.status})`
+        )
+      }
+
+      const allUsers = await usersResponse.json()
+      const allMemberships = await membershipsResponse.json()
+
+      const memberIds = new Set(
+        allMemberships
+          .filter(
+            (membership) =>
+              Number(membership.channel_id) === Number(channel.id) &&
+              membership.status === 'active'
+          )
+          .map((membership) => Number(membership.user_id))
+      )
+
+      const availableUsers = allUsers.filter(
+        (user) => !memberIds.has(Number(user.id))
+      )
+
+      setUsers(availableUsers)
+    } catch (error) {
+      console.error('Error fetching users:', error)
+      setMemberError(error.message)
+    } finally {
+      setUsersLoading(false)
+    }
+  }
+
+
+
+
+  useEffect(() => {
+    if (showAddMember && hasPermission('manage_channel_members')) {
+      fetchUsers()
+    }
+  }, [showAddMember])
+
+
+
+  const handleAddMember = async (event) => {
+    event.preventDefault()
+
+    setMemberError('')
+    setMemberSuccess('')
+
+    if (!selectedUserId) {
+      setMemberError('Please select a user.')
+      return
+    }
+
+    try {
+      setAddingMember(true)
+
+      const response = await apiFetch(
+        '/channel-memberships',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            channel_id: channel.id,
+            user_id: Number(selectedUserId),
+            status: 'active',
+            joined_at: Math.floor(Date.now() / 1000),
+          }),
+        }
+      )
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(
+          data?.message ||
+          data?.errors?.user_id?.[0] ||
+          data?.user_id?.[0] ||
+          `Failed to add channel member (${response.status})`
+        )
+      }
+
+      setMemberSuccess('Member added successfully.')
+      setSelectedUserId('')
+      setShowAddMember(false)
+
+    } catch (error) {
+      console.error('Error adding channel member:', error)
+      setMemberError(error.message)
+    } finally {
+      setAddingMember(false)
+    }
+  }
+
+
 
   if (!channel) {
     return null
@@ -60,14 +190,10 @@ function ChannelDetails({
       setError('')
       setSuccess('')
 
-      const response = await fetch(
-        `http://localhost:8080/channels/${channel.id}`,
+      const response = await apiFetch(
+        `/channels/${channel.id}`,
         {
           method: 'PUT',
-          headers: {
-            Authorization: 'Bearer user1-test-token-12345',
-            'Content-Type': 'application/json',
-          },
           body: JSON.stringify({
             name: name.trim(),
             description: description.trim(),
@@ -124,13 +250,10 @@ function ChannelDetails({
       setError('')
       setSuccess('')
 
-      const response = await fetch(
-        `http://localhost:8080/channels/${channel.id}`,
+      const response = await apiFetch(
+        `/channels/${channel.id}`,
         {
           method: 'DELETE',
-          headers: {
-            Authorization: 'Bearer user1-test-token-12345',
-          },
         }
       )
 
@@ -251,6 +374,83 @@ function ChannelDetails({
               {error}
             </div>
           )}
+
+
+
+          {hasPermission('manage_channel_members') && (
+            <div className="channel-members-section">
+
+              <div className="channel-members-header">
+                <h4>Channel Members</h4>
+
+                <button
+                  type="button"
+                  className="team-secondary-button"
+                  onClick={() => {
+                    setMemberError('')
+                    setMemberSuccess('')
+                    setShowAddMember((current) => !current)
+                  }}
+                >
+                  {showAddMember ? 'Cancel' : 'Add Member'}
+                </button>
+              </div>
+
+              {showAddMember && (
+                <form
+                  className="team-edit-form"
+                  onSubmit={handleAddMember}
+                >
+                  <div className="team-form-field">
+                    <label>Select User</label>
+
+                    <select
+                      value={selectedUserId}
+                      onChange={(event) =>
+                        setSelectedUserId(event.target.value)
+                      }
+                      disabled={usersLoading || addingMember}
+                    >
+                      <option value="">
+                        {usersLoading
+                          ? 'Loading users...'
+                          : 'Select a user'}
+                      </option>
+
+                      {users.map((user) => (
+                        <option key={user.id} value={user.id}>
+                          {user.name} — {user.email}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {memberError && (
+                    <div className="team-error">
+                      {memberError}
+                    </div>
+                  )}
+
+                  {memberSuccess && (
+                    <div className="team-success">
+                      {memberSuccess}
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    className="team-primary-button"
+                    disabled={addingMember || usersLoading}
+                  >
+                    {addingMember ? 'Adding...' : 'Add Member'}
+                  </button>
+                </form>
+              )}
+            </div>
+          )}
+
+
+
 
           {/* FOOTER */}
           <div className="channel-details-footer">

@@ -69,6 +69,12 @@ $config = [
             'rules' => [
                 [
                     'class' => 'yii\rest\UrlRule',
+                    'controller' => 'v1/ping',
+                    'pluralize' => false,
+                    'only' => ['index'],
+                ],
+                [
+                    'class' => 'yii\rest\UrlRule',
                     'controller' => 'task-watcher',
                 ],
                 [
@@ -224,6 +230,13 @@ $config = [
                         'OPTIONS' => 'options',
                         'OPTIONS me' => 'options',
                     ],
+                ],
+
+                [
+                    'class' => 'yii\rest\UrlRule',
+                    'controller' => 'auth',
+                    'pluralize' => false,
+                    'only' => ['signup', 'login', 'logout'],
                 ],
 
                 [

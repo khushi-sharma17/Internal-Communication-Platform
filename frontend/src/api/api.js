@@ -8,7 +8,10 @@ export async function apiFetch(endpoint, options = {}) {
       ? {}
       : { 'Content-Type': 'application/json' }),
     ...(options.headers || {}),
-    Authorization: `Bearer ${token}`,
+  }
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`
   }
 
   return fetch(`${API_BASE_URL}${endpoint}`, {

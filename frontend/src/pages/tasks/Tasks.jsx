@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
+
 import './Tasks.css'
+import { apiFetch } from '../../api/api'
 
 function Tasks({ onTaskSelected }) {
 
@@ -25,11 +27,7 @@ function Tasks({ onTaskSelected }) {
       setLoading(true)
       setError('')
 
-      const response = await fetch('http://localhost:8080/tasks', {
-        headers: {
-          Authorization: 'Bearer user1-test-token-12345',
-        },
-      })
+      const response = await apiFetch('/tasks')
 
       if (!response.ok) {
         throw new Error(`Failed to fetch tasks (${response.status})`)
@@ -59,14 +57,8 @@ function Tasks({ onTaskSelected }) {
         setCreatingTask(true)
         setError('')
 
-        const response = await fetch(
-        'http://localhost:8080/tasks',
-        {
+        const response = await apiFetch('/tasks', {
             method: 'POST',
-            headers: {
-            Authorization: 'Bearer user1-test-token-12345',
-            'Content-Type': 'application/json',
-            },
             body: JSON.stringify({
             title: newTask.title.trim(),
             description: newTask.description.trim() || null,
@@ -131,15 +123,9 @@ function Tasks({ onTaskSelected }) {
     try {
         setError('')
 
-        const response = await fetch(
-        `http://localhost:8080/tasks/${taskId}`,
-        {
-            method: 'DELETE',
-            headers: {
-            Authorization: 'Bearer user1-test-token-12345',
-            },
-        }
-        )
+        const response = await apiFetch(`/tasks/${taskId}`, {
+          method: 'DELETE',
+        })
 
         if (!response.ok) {
         const data = await response.json().catch(() => null)

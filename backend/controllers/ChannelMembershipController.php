@@ -25,6 +25,26 @@ class ChannelMembershipController extends ActiveController
     {
         $behaviors = parent::behaviors();
 
+        $behaviors['corsFilter'] = [
+            'class' => \yii\filters\Cors::class,
+            'cors' => [
+                'Origin' => ['http://localhost:5173'],
+                'Access-Control-Request-Method' => [
+                    'GET',
+                    'POST',
+                    'PUT',
+                    'PATCH',
+                    'DELETE',
+                    'OPTIONS',
+                ],
+                'Access-Control-Request-Headers' => [
+                    'Content-Type',
+                    'Authorization',
+                ],
+                'Access-Control-Allow-Credentials' => true,
+            ],
+        ];
+
         $behaviors['authenticator'] = [
             'class' => \yii\filters\auth\HttpBearerAuth::class,
         ];
@@ -32,11 +52,20 @@ class ChannelMembershipController extends ActiveController
         return $behaviors;
     }
 
+
+
+
     public function beforeAction($action)
     {
+        if (\Yii::$app->request->isOptions) {
+            \Yii::$app->response->statusCode = 200;
+            return false;
+        }
+
         if (!parent::beforeAction($action)) {
             return false;
         }
+
 
         $userId = \Yii::$app->user->id;
 

@@ -10,6 +10,7 @@ import ReportingHierarchy from './ReportingHierarchy'
 function Organization({
   initialSelectedUser,
   initialSelectedRole,
+  hasPermission
 }) {
 
   
@@ -71,7 +72,7 @@ function Organization({
         {section === 'roles' && (
           <RolesPermissions initialSelectedRole={selectedRole} />
         )}
-        {section === 'hierarchy' && <ReportingHierarchy />}
+        {section === 'hierarchy' && <ReportingHierarchy hasPermission={hasPermission} />}
       </div>
     </div>
   )

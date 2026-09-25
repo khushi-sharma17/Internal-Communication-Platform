@@ -46,6 +46,12 @@ function TeamMembers({ selectedTeam, hasPermission }) {
       )
 
       if (!response.ok) {
+        if (response.status === 403) {
+          throw new Error(
+            'You are not authorized to access this section.'
+          )
+        }
+
         throw new Error(
           `Failed to load team members (${response.status})`
         )
@@ -71,6 +77,12 @@ function TeamMembers({ selectedTeam, hasPermission }) {
       const response = await apiFetch('/users')
 
       if (!response.ok) {
+        if (response.status === 403) {
+          throw new Error(
+            'You are not authorized to access this section.'
+          )
+        }
+
         throw new Error(
           `Failed to load users (${response.status})`
         )
@@ -96,6 +108,12 @@ function TeamMembers({ selectedTeam, hasPermission }) {
       const response = await apiFetch('/roles')
 
       if (!response.ok) {
+        if (response.status === 403) {
+          throw new Error(
+            'You are not authorized to access this section.'
+          )
+        }
+
         throw new Error(
           `Failed to load roles (${response.status})`
         )

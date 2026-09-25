@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { apiFetch } from '../../api/api'
 
-function ReportingHierarchy() {
+function ReportingHierarchy({ hasPermission }) {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -224,7 +224,7 @@ function ReportingHierarchy() {
               </div>
             </div>
 
-
+          {hasPermission('manage_users') && (
             <div className="reporting-controls">
               <div>
                 <label>Select User</label>
@@ -277,16 +277,18 @@ function ReportingHierarchy() {
                     ))}
                 </select>
               </div>
+          
 
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={updateManager}
-                disabled={!selectedUserId || updatingManager}
-              >
-                {updatingManager ? 'Updating...' : 'Update Reporting Line'}
-              </button>
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={updateManager}
+                  disabled={!selectedUserId || updatingManager}
+                >
+                  {updatingManager ? 'Updating...' : 'Update Reporting Line'}
+                </button>
             </div>
+          )}
 
             {updateMessage && (
               <div className="organization-success">

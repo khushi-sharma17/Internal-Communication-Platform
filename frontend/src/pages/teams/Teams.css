@@ -1303,3 +1303,102 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+
+
+
+.channel-members-section {
+  margin: 0 20px 20px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.channel-members-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 0;
+}
+
+.channel-members-header h4 {
+  margin: 0;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.channel-members-header .team-secondary-button {
+  min-width: 110px;
+}
+
+.channel-members-section .team-edit-form {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 9px;
+  background: #ffffff;
+}
+
+.channel-members-section .team-form-field {
+  margin-bottom: 14px;
+}
+
+.channel-members-section .team-form-field label {
+  display: block;
+  margin-bottom: 6px;
+  color: #374151;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.channel-members-section .team-form-field select {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 40px;
+  padding: 9px 11px;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #374151;
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+}
+
+.channel-members-section .team-form-field select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px #dbeafe;
+}
+
+.channel-members-section .team-form-field select:disabled {
+  background: #f9fafb;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.channel-members-section .team-primary-button {
+  min-width: 110px;
+}
+
+@media (max-width: 600px) {
+  .channel-members-section {
+    margin: 0 16px 16px;
+  }
+
+  .channel-members-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .channel-members-header .team-secondary-button {
+    width: 100%;
+  }
+
+  .channel-members-section .team-primary-button {
+    width: 100%;
+  }
+}

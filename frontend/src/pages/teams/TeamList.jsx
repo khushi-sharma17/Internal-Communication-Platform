@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { apiFetch } from '../../api/api'
 
 function TeamList({
   selectedTeam,
@@ -23,14 +24,18 @@ function TeamList({
       setLoading(true)
       setError('')
 
-      const response = await fetch('http://localhost:8080/teams', {
-        headers: {
-          Authorization: 'Bearer user1-test-token-12345',
-        },
-      })
+      const response = await apiFetch('/teams')
 
       if (!response.ok) {
-        throw new Error(`Failed to load teams (${response.status})`)
+        if (response.status === 403) {
+          throw new Error(
+            'You are not authorized to access this section.'
+          )
+        }
+
+        throw new Error(
+          `Failed to load teams (${response.status})`
+        )
       }
 
       const data = await response.json()
@@ -90,12 +95,8 @@ function TeamList({
     try {
       setCreating(true)
 
-      const response = await fetch('http://localhost:8080/teams', {
+      const response = await apiFetch('/teams', {
         method: 'POST',
-        headers: {
-          Authorization: 'Bearer user1-test-token-12345',
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           organization_unit_id: Number(organizationUnitId),
           name: teamName.trim(),

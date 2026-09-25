@@ -32,6 +32,20 @@ class ConversationController extends ActiveController
         return $actions;
     }
 
+
+
+    public function beforeAction($action)
+    {
+        if (\Yii::$app->request->isOptions) {
+            \Yii::$app->response->statusCode = 200;
+            return false;
+        }
+
+        return parent::beforeAction($action);
+    }
+
+
+
     public function actionCreate()
     {
         $userId = \Yii::$app->user->id;

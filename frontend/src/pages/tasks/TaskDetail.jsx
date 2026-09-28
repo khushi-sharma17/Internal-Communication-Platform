@@ -46,7 +46,7 @@ function TaskDetail({ task, onBack, onOpenChat }) {
     const [loadingActivities, setLoadingActivities] = useState(true)
     const [activityMessage, setActivityMessage] = useState('')
 
-
+    const [clearingActivities, setClearingActivities] = useState(false)
 
     const [showEditForm, setShowEditForm] = useState(false)
     const [savingTask, setSavingTask] = useState(false)
@@ -370,6 +370,43 @@ function TaskDetail({ task, onBack, onOpenChat }) {
         }
     }
 
+
+
+
+
+    const clearActivities = async () => {
+        if (!window.confirm('Are you sure you want to clear all activities for this task?')) {
+            return
+        }
+
+        try {
+            setClearingActivities(true)
+            setActivityMessage('')
+
+            const response = await apiFetch(`/task-activities/clear/${task.id}`, {
+                method: 'DELETE',
+            })
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => null)
+
+                throw new Error(
+                    errorData?.message || 'Failed to clear activities.'
+                )
+            }
+
+            // Refresh the activity list
+            setActivities([])
+
+        } catch (error) {
+            console.error('Clear activities failed:', error)
+            setActivityMessage(
+                error.message || 'Failed to clear activities.'
+            )
+        } finally {
+            setClearingActivities(false)
+        }
+    }
 
 
 
@@ -820,10 +857,22 @@ function TaskDetail({ task, onBack, onOpenChat }) {
                         <p>History of changes and actions on this task</p>
                     </div>
 
-                    <span className="activity-count">
-                        {activities.length} {activities.length === 1 ? 'event' : 'events'}
-                    </span>
+                    <div className="activity-header-actions">
+                        <span className="activity-count">
+                            {activities.length} {activities.length === 1 ? 'event' : 'events'}
+                        </span>
+
+                        <button
+                            type="button"
+                            className="clear-activities-button"
+                            onClick={clearActivities}
+                            disabled={clearingActivities || activities.length === 0}
+                        >
+                            {clearingActivities ? 'Clearing...' : 'Clear Activities'}
+                        </button>
+                    </div>
                 </div>
+
 
                 <div className="activity-content">
 

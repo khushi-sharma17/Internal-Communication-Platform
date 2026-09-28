@@ -94,6 +94,10 @@ $config = [
                 [
                     'class' => 'yii\rest\UrlRule',
                     'controller' => 'task-activity',
+                    'extraPatterns' => [
+                        'DELETE clear/<taskId>' => 'clear',
+                        'OPTIONS clear/<taskId>' => 'options',
+                    ],
                 ],
                 [
                     'class' => 'yii\rest\UrlRule',

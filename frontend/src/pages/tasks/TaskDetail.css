@@ -922,6 +922,36 @@
 }
 
 
+
+
+.activity-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.clear-activities-button {
+  padding: 7px 12px;
+  border: 1px solid #dc2626;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #dc2626;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.clear-activities-button:hover:not(:disabled) {
+  background: #fef2f2;
+}
+
+.clear-activities-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
+
+
 /* Activity content */
 
 .activity-content {

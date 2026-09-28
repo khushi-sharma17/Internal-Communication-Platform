@@ -90,4 +90,33 @@ class TaskActivityController extends ActiveController
 
         return $model;
     }
+
+
+    public function actionClear($taskId)
+    {
+        $task = \app\models\Task::findOne($taskId);
+
+        if (!$task) {
+            throw new \yii\web\NotFoundHttpException(
+                'Task not found.'
+            );
+        }
+
+        $userId = (int) Yii::$app->user->id;
+
+        // Only the task creator can clear its activity history.
+        if ((int) $task->created_by !== $userId) {
+            throw new \yii\web\ForbiddenHttpException(
+                'Only the task creator can clear activity history.'
+            );
+        }
+
+        TaskActivity::deleteAll([
+            'task_id' => $taskId,
+        ]);
+
+        Yii::$app->response->statusCode = 204;
+
+        return '';
+    }
 }

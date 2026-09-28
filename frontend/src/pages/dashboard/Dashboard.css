@@ -485,3 +485,49 @@
   font-size: 11px;
   color: #9ca3af;
 }
+
+
+
+
+
+
+
+
+
+.ai-search-section {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+.ai-search-section > strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #374151;
+}
+
+.ai-search-error {
+  margin: 10px 0;
+  padding: 10px 12px;
+  border-radius: 7px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 13px;
+}
+
+.ai-search-empty {
+  margin: 12px 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.search-result-clickable {
+  cursor: pointer;
+}
+
+.search-result-clickable:hover {
+  background: #f3f4f6;
+}

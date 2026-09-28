@@ -16,6 +16,10 @@ function TaskChat({ task }) {
 
   const [conversationId, setConversationId] = useState(null)
 
+  const [aiSummary, setAiSummary] = useState('')
+  const [generatingAiSummary, setGeneratingAiSummary] = useState(false)
+  const [aiSummaryError, setAiSummaryError] = useState('')
+
 
   const fetchConversation = async () => {
     if (!task?.id) {
@@ -110,6 +114,40 @@ function TaskChat({ task }) {
       setLoading(false)
     }
   }
+
+
+
+
+  const generateAiSummary = async () => {
+    if (!conversationId) return
+
+    try {
+      setGeneratingAiSummary(true)
+      setAiSummaryError('')
+
+      const response = await apiFetch(
+        `/conversations/${conversationId}/ai-summary`,
+        {
+          method: 'POST',
+        }
+      )
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to generate AI summary')
+      }
+
+      setAiSummary(data.summary || '')
+    } catch (error) {
+      console.error('Error generating AI summary:', error)
+      setAiSummaryError(error.message || 'Unable to generate AI summary.')
+    } finally {
+      setGeneratingAiSummary(false)
+    }
+  }
+
+
 
 
   const markMessageAsRead = async (messageId) => {
@@ -317,6 +355,33 @@ function TaskChat({ task }) {
         </div>
 
       </header>
+
+
+
+      <section className="ai-summary-section">
+        <div className="ai-summary-header">
+          <h3>AI Summary</h3>
+
+          <button
+            type="button"
+            onClick={generateAiSummary}
+            disabled={!conversationId || generatingAiSummary}
+          >
+            {generatingAiSummary ? 'Generating...' : 'Generate Summary'}
+          </button>
+        </div>
+
+        {aiSummaryError && (
+          <p className="ai-summary-error">{aiSummaryError}</p>
+        )}
+
+        {aiSummary && (
+          <div className="ai-summary-content">
+            {aiSummary}
+          </div>
+        )}
+      </section>
+
 
 
 

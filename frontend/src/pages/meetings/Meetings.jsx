@@ -32,6 +32,17 @@ function Meetings({ initialSelectedMeeting }) {
 
     const [currentUserId, setCurrentUserId] = useState(null)
 
+
+    const [meetingNotes, setMeetingNotes] = useState({})
+    const [noteContent, setNoteContent] = useState({})
+    const [notesLoading, setNotesLoading] = useState({})
+    const [savingNote, setSavingNote] = useState({})
+    const [aiSummarizing, setAiSummarizing] = useState({})
+
+    const [actionTask, setActionTask] = useState(null)
+    const [creatingActionTask, setCreatingActionTask] = useState(false)
+
+
     const fetchMeetings = async () => {
         try {
         setLoading(true)
@@ -92,6 +103,236 @@ function Meetings({ initialSelectedMeeting }) {
         } catch (err) {
             setError(err.message || 'Failed to load users')
         }
+    }
+
+
+
+
+    const fetchMeetingNotes = async (meetingId) => {
+        try {
+            setNotesLoading((previous) => ({
+                ...previous,
+                [meetingId]: true,
+            }))
+
+            setError('')
+
+            const response = await apiFetch(
+                `/meeting-notes/${meetingId}`
+            )
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(
+                    data?.message ||
+                    data?.error ||
+                    `Failed to fetch meeting notes (${response.status})`
+                )
+            }
+
+            setMeetingNotes((previous) => ({
+                ...previous,
+                [meetingId]: Array.isArray(data) ? data : [],
+            }))
+        } catch (err) {
+            setError(
+                err.message ||
+                'Failed to load meeting notes'
+            )
+        } finally {
+            setNotesLoading((previous) => ({
+                ...previous,
+                [meetingId]: false,
+            }))
+        }
+    }
+
+
+
+
+    const saveMeetingNote = async (meetingId) => {
+        const content = (noteContent[meetingId] || '').trim()
+
+        if (!content) {
+            setError('Please enter meeting notes before saving.')
+            return
+        }
+
+        try {
+            setSavingNote((previous) => ({
+                ...previous,
+                [meetingId]: true,
+            }))
+
+            setError('')
+
+            const response = await apiFetch(
+                `/meeting-notes/${meetingId}/notes`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        content,
+                    }),
+                }
+            )
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(
+                    data?.message ||
+                    data?.error ||
+                    `Failed to save meeting note (${response.status})`
+                )
+            }
+
+            setMeetingNotes((previous) => ({
+                ...previous,
+                [meetingId]: [
+                    ...(previous[meetingId] || []),
+                    data,
+                ],
+            }))
+
+            setNoteContent((previous) => ({
+                ...previous,
+                [meetingId]: '',
+            }))
+        } catch (err) {
+            setError(
+                err.message ||
+                'Failed to save meeting note'
+            )
+        } finally {
+            setSavingNote((previous) => ({
+                ...previous,
+                [meetingId]: false,
+            }))
+        }
+    }
+
+
+
+
+    const summarizeMeetingNote = async (noteId) => {
+        try {
+            setAiSummarizing((previous) => ({
+                ...previous,
+                [noteId]: true,
+            }))
+
+            setError('')
+
+            const response = await apiFetch(
+                `/meeting-notes/${noteId}/ai-summary`,
+                {
+                    method: 'POST',
+                }
+            )
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(
+                    data?.message ||
+                    data?.error ||
+                    `Failed to generate AI summary (${response.status})`
+                )
+            }
+
+            setMeetingNotes((previous) => {
+                const updated = { ...previous }
+
+                Object.keys(updated).forEach((meetingId) => {
+                    updated[meetingId] = updated[meetingId].map((note) =>
+                        Number(note.id) === Number(noteId)
+                            ? {
+                                  ...note,
+                                  ai_summary: data.summary,
+                                  ai_decisions: JSON.stringify(
+                                      data.decisions || []
+                                  ),
+                                  ai_action_items: JSON.stringify(
+                                      data.action_items || []
+                                  ),
+                              }
+                            : note
+                    )
+                })
+
+                return updated
+            })
+        } catch (err) {
+            setError(
+                err.message ||
+                'Failed to generate AI summary'
+            )
+        } finally {
+            setAiSummarizing((previous) => ({
+                ...previous,
+                [noteId]: false,
+            }))
+        }
+    }
+
+
+
+    const createTaskFromActionItem = async () => {
+      if (!actionTask?.title?.trim()) {
+        setError('Task title is required.')
+        return
+      }
+
+      try {
+        setCreatingActionTask(true)
+        setError('')
+
+        const response = await apiFetch('/tasks', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            title: actionTask.title.trim(),
+            description: actionTask.description.trim(),
+            priority: actionTask.priority,
+            ...(actionTask.due_date
+            ? {
+                due_date: Math.floor(
+                  new Date(`${actionTask.due_date}T00:00:00`).getTime() / 1000
+                ),
+              }
+            : {}),
+            ...(actionTask.assigned_to
+              ? { assigned_to: Number(actionTask.assigned_to) }
+              : {}),
+          }),
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(
+            data?.message ||
+            data?.error ||
+            JSON.stringify(data) ||
+            `Failed to create task (${response.status})`
+          )
+        }
+
+        setActionTask(null)
+      } catch (err) {
+        setError(
+          err.message ||
+          'Failed to create task'
+        )
+      } finally {
+        setCreatingActionTask(false)
+      }
     }
 
 
@@ -219,7 +460,11 @@ function Meetings({ initialSelectedMeeting }) {
         fetchMeetings()
     }, [])
 
-
+    useEffect(() => {
+        if (selectedMeeting?.id) {
+            fetchMeetingNotes(selectedMeeting.id)
+        }
+    }, [selectedMeeting?.id])
 
 
     const createMeeting = async () => {
@@ -834,6 +1079,14 @@ function Meetings({ initialSelectedMeeting }) {
               <div className="meeting-card-right">
 
                 <button
+                  type="button"
+                  className="view-meeting-button"
+                  onClick={() => setSelectedMeeting(meeting)}
+                >
+                  View Details →
+                </button>
+
+                <button
                     type="button"
                     className="invite-participant-button"
                     onClick={() => {
@@ -855,11 +1108,274 @@ function Meetings({ initialSelectedMeeting }) {
 
           ))}
 
-        </div>
+          </div>
       )}
 
+      {selectedMeeting && (
+        <div className="meeting-detail">
+          <div className="meeting-detail-header">
+            <div>
+              <h2>{selectedMeeting.title}</h2>
+
+              {selectedMeeting.agenda && (
+                <p>{selectedMeeting.agenda}</p>
+              )}
+            </div>
+
+            <button
+              type="button"
+              className="close-meeting-detail"
+              onClick={() => setSelectedMeeting(null)}
+            >
+              Close
+            </button>
+          </div>
+
+          <div className="meeting-detail-meta">
+            <span>
+              {formatMeetingDate(selectedMeeting.start_time)}
+            </span>
+
+            {selectedMeeting.location && (
+              <span>
+                {selectedMeeting.location}
+              </span>
+            )}
+
+            {Number(selectedMeeting.is_recurring) === 1 && (
+              <span>
+                Recurring
+              </span>
+            )}
+          </div>
+
+
+          <div className="meeting-notes-section">
+            <div className="meeting-notes-header">
+              <h4>Meeting Notes</h4>
+
+              <button
+                type="button"
+                onClick={() =>
+                  fetchMeetingNotes(selectedMeeting.id)
+                }
+                disabled={
+                  notesLoading[selectedMeeting.id]
+                }
+              >
+                {notesLoading[selectedMeeting.id]
+                  ? 'Loading...'
+                  : 'Refresh'}
+              </button>
+            </div>
+
+            <textarea
+              value={
+                noteContent[selectedMeeting.id] || ''
+              }
+              onChange={(e) =>
+                setNoteContent((previous) => ({
+                  ...previous,
+                  [selectedMeeting.id]: e.target.value,
+                }))
+              }
+              placeholder="Add meeting notes or transcript..."
+              rows="4"
+            />
+
+            <button
+              type="button"
+              onClick={() =>
+                saveMeetingNote(selectedMeeting.id)
+              }
+              disabled={
+                savingNote[selectedMeeting.id]
+              }
+            >
+              {savingNote[selectedMeeting.id]
+                ? 'Saving...'
+                : 'Save Note'}
+            </button>
+
+            <div className="meeting-notes-list">
+              {(meetingNotes[selectedMeeting.id] || []).map(
+                (note) => (
+                  <div
+                    key={note.id}
+                    className="meeting-note-item"
+                  >
+                    <p>{note.content}</p>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        summarizeMeetingNote(note.id)
+                      }
+                      disabled={aiSummarizing[note.id]}
+                    >
+                      {aiSummarizing[note.id]
+                        ? 'Generating AI Summary...'
+                        : 'Generate AI Summary'}
+                    </button>
+
+                    {note.ai_summary && (
+                      <div className="ai-meeting-summary">
+                        <h5>AI Summary</h5>
+
+                        <p>{note.ai_summary}</p>
+
+                        {note.ai_decisions && (
+                          <div>
+                            <strong>Decisions</strong>
+
+                            <ul>
+                              {JSON.parse(
+                                note.ai_decisions
+                              ).map(
+                                (decision, index) => (
+                                  <li key={index}>
+                                    {decision}
+                                  </li>
+                                )
+                              )}
+                            </ul>
+                          </div>
+                        )}
+
+                        {note.ai_action_items && (
+                          <div>
+                            <strong>Action Items</strong>
+
+                            <ul>
+                              {JSON.parse(
+                                note.ai_action_items
+                              ).map(
+                                (item, index) => (
+                                  <li key={index} className="meeting-action-item">
+                                    <span>{item}</span>
+
+                                    <button
+                                      type="button"
+                                      className="create-action-task-button"
+                                      onClick={() => {
+                                        setActionTask({
+                                          title: item,
+                                          description: '',
+                                          assigned_to: '',
+                                          due_date: '',
+                                          priority: 'medium',
+                                        })
+                                      }}
+                                    >
+                                      Create Task
+                                    </button>
+                                  </li>
+                                )
+                              )}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )
+              )}
+            </div>
+          </div>
+
+
+
+          {actionTask && (
+              <div className="action-task-form">
+                <h4>Create Task from Action Item</h4>
+
+                <label>
+                  Task Title
+                  <input
+                    type="text"
+                    value={actionTask.title}
+                    onChange={(e) =>
+                      setActionTask((previous) => ({
+                        ...previous,
+                        title: e.target.value,
+                      }))
+                    }
+                  />
+                </label>
+
+                <label>
+                  Description
+                  <textarea
+                    value={actionTask.description}
+                    onChange={(e) =>
+                      setActionTask((previous) => ({
+                        ...previous,
+                        description: e.target.value,
+                      }))
+                    }
+                    rows="3"
+                    placeholder="Optional description"
+                  />
+                </label>
+
+                <label>
+                  Priority
+                  <select
+                    value={actionTask.priority}
+                    onChange={(e) =>
+                      setActionTask((previous) => ({
+                        ...previous,
+                        priority: e.target.value,
+                      }))
+                    }
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                </label>
+
+                <label>
+                  Due Date
+                  <input
+                    type="date"
+                    value={actionTask.due_date}
+                    onChange={(e) =>
+                      setActionTask((previous) => ({
+                        ...previous,
+                        due_date: e.target.value,
+                      }))
+                    }
+                  />
+                </label>
+
+                <div className="action-task-form-actions">
+                  <button
+                    type="button"
+                    onClick={() => setActionTask(null)}
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={creatingActionTask}
+                    onClick={createTaskFromActionItem}
+                  >
+                    {creatingActionTask
+                      ? 'Creating...'
+                      : 'Confirm & Create Task'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+
+        </div>
+      )}
     </div>
   )
+
 }
 
 export default Meetings

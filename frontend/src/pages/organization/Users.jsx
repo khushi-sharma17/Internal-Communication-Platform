@@ -10,6 +10,7 @@ function Users({ initialSelectedUser }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
+  const [organizationUnits, setOrganizationUnits] = useState([])
 
   const handleRoleChange = async (userId, roleId) => {
     try {
@@ -80,6 +81,82 @@ function Users({ initialSelectedUser }) {
   }
 
 
+
+
+
+  const handleOrganizationUnitChange = async (userId, organizationUnitId) => {
+    try {
+      const user = users.find((item) => item.id === userId)
+
+      if (!user) {
+        return
+      }
+
+      const currentUnitAssignments = user.organizationUnitAssignments || []
+
+      // Remove the user's existing organization-unit assignments
+      for (const assignment of currentUnitAssignments) {
+        const response = await apiFetch(
+          `/user-organization-units/${assignment.id}`,
+          {
+            method: 'DELETE',
+          }
+        )
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => null)
+
+          console.error(
+            'Organization unit removal failed:',
+            JSON.stringify(errorData, null, 2)
+          )
+
+          throw new Error(
+            `Failed to remove existing organization unit (${response.status})`
+          )
+        }
+      }
+
+      // "No unit" was selected
+      if (organizationUnitId === 0) {
+        await fetchUsers()
+        return
+      }
+
+      // Assign the newly selected organization unit
+      const response = await apiFetch('/user-organization-units', {
+        method: 'POST',
+        body: JSON.stringify({
+          user_id: userId,
+          organization_unit_id: organizationUnitId,
+          created_at: Math.floor(Date.now() / 1000),
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null)
+
+        console.error(
+          'Organization unit assignment failed:',
+          JSON.stringify(errorData, null, 2)
+        )
+
+        throw new Error(
+          `Failed to assign organization unit (${response.status})`
+        )
+      }
+
+      await fetchUsers()
+    } catch (error) {
+      console.error('Organization unit change error:', error)
+      setError(error.message)
+    }
+  }
+
+
+
+
+
   const fetchUsers = async () => {
     try {
       setLoading(true)
@@ -110,12 +187,33 @@ function Users({ initialSelectedUser }) {
       const userRolesData = await userRolesResponse.json()
 
 
+
+      const userOrganizationUnitsResponse = await apiFetch(
+        '/user-organization-units'
+      )
+
+      if (!userOrganizationUnitsResponse.ok) {
+        throw new Error(
+          `Failed to load user organization units (${userOrganizationUnitsResponse.status})`
+        )
+      }
+
+      const userOrganizationUnitsData =
+        await userOrganizationUnitsResponse.json()
+
+
+
+
       const usersWithRoleAssignments = data.map((user) => ({
         ...user,
         roleAssignments: userRolesData.filter(
           (userRole) => userRole.user_id === user.id
         ),
+        organizationUnitAssignments: userOrganizationUnitsData.filter(
+          (assignment) => Number(assignment.user_id) === Number(user.id)
+        ),
       }))
+
 
       setUsers(usersWithRoleAssignments)
 
@@ -128,6 +226,16 @@ function Users({ initialSelectedUser }) {
 
       const rolesData = await rolesResponse.json()
       setRoles(rolesData)
+
+
+      const organizationUnitsResponse = await apiFetch('/organization-units')
+
+      if (!organizationUnitsResponse.ok) {
+        throw new Error('Failed to fetch organization units')
+      }
+
+      const organizationUnitsData = await organizationUnitsResponse.json()
+      setOrganizationUnits(organizationUnitsData)
 
 
     } catch (error) {
@@ -277,15 +385,24 @@ function Users({ initialSelectedUser }) {
 
 
                     <td>
-                      {user.organizationUnits?.length > 0 ? (
-                        <span className="manager-badge">
-                          {user.organizationUnits[0].name}
-                        </span>
-                      ) : (
-                        <span className="table-secondary-text">
-                          No unit
-                        </span>
-                      )}
+                      <select
+                        value={user.organizationUnitAssignments?.[0]?.organization_unit_id || 0}
+                        onChange={(event) =>
+                          handleOrganizationUnitChange(
+                            user.id,
+                            Number(event.target.value)
+                          )
+                        }
+                        className="organization-unit-select"
+                      >
+                        <option value={0}>No unit</option>
+
+                        {organizationUnits.map((unit) => (
+                          <option key={unit.id} value={unit.id}>
+                            {unit.name}
+                          </option>
+                        ))}
+                      </select>
                     </td>
 
 

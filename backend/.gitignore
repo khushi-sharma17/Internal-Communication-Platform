@@ -34,3 +34,10 @@ tests/_support/_generated
 
 #vagrant folder
 /.vagrant
+
+
+
+# Environment variables
+.env
+.env.*
+!.env.example

@@ -7,6 +7,7 @@ use yii\data\ActiveDataProvider;
 use yii\rest\ActiveController;
 use yii\web\UploadedFile;
 use yii\filters\Cors;
+use app\components\AccessControl;
 
 class MessageController extends ActiveController
 {
@@ -140,15 +141,10 @@ class MessageController extends ActiveController
                 );
             }
 
-            $isTaskAuthorized =
-                (int)$task->created_by === (int)$userId
-                || (int)$task->assigned_to === (int)$userId
-                || \app\models\TaskWatcher::find()
-                    ->where([
-                        'task_id' => $task->id,
-                        'user_id' => $userId,
-                    ])
-                    ->exists();
+            $isTaskAuthorized = AccessControl::canViewTask(
+                $task,
+                (int)$userId
+            );
 
             if (!$isTaskAuthorized) {
                 throw new \yii\web\ForbiddenHttpException(
@@ -342,15 +338,10 @@ class MessageController extends ActiveController
                 );
             }
 
-            $isTaskAuthorized =
-                (int)$task->created_by === (int)$userId
-                || (int)$task->assigned_to === (int)$userId
-                || \app\models\TaskWatcher::find()
-                    ->where([
-                        'task_id' => $task->id,
-                        'user_id' => $userId,
-                    ])
-                    ->exists();
+            $isTaskAuthorized = \app\components\AccessControl::canViewTask(
+                $task,
+                (int)$userId
+            );
 
             if (!$isTaskAuthorized) {
                 throw new \yii\web\ForbiddenHttpException(
@@ -429,15 +420,10 @@ class MessageController extends ActiveController
                 );
             }
 
-            $isTaskAuthorized =
-                (int)$task->created_by === (int)$userId
-                || (int)$task->assigned_to === (int)$userId
-                || \app\models\TaskWatcher::find()
-                    ->where([
-                        'task_id' => $task->id,
-                        'user_id' => $userId,
-                    ])
-                    ->exists();
+            $isTaskAuthorized = AccessControl::canViewTask(
+                $task,
+                (int)$userId
+            );
 
             if (!$isTaskAuthorized) {
                 throw new \yii\web\ForbiddenHttpException(
@@ -559,15 +545,10 @@ class MessageController extends ActiveController
                 );
             }
 
-            $isTaskAuthorized =
-                (int)$task->created_by === (int)$userId
-                || (int)$task->assigned_to === (int)$userId
-                || \app\models\TaskWatcher::find()
-                    ->where([
-                        'task_id' => $task->id,
-                        'user_id' => $userId,
-                    ])
-                    ->exists();
+            $isTaskAuthorized = \app\components\AccessControl::canViewTask(
+                $task,
+                (int)$userId
+            );
 
             if (!$isTaskAuthorized) {
                 throw new \yii\web\ForbiddenHttpException(

@@ -12,6 +12,13 @@ function Tasks({ onTaskSelected }) {
     const [showCreateForm, setShowCreateForm] = useState(false)
     const [creatingTask, setCreatingTask] = useState(false)
 
+    const [aiDescription, setAiDescription] = useState('')
+    const [aiSuggestions, setAiSuggestions] = useState([])
+    const [selectedAiTasks, setSelectedAiTasks] = useState([])
+    const [aiLoading, setAiLoading] = useState(false)
+    const [aiConfirming, setAiConfirming] = useState(false)
+    const [showAiSuggestions, setShowAiSuggestions] = useState(false)
+
     const [activeFilter, setActiveFilter] = useState('all')
 
     const [newTask, setNewTask] = useState({
@@ -104,6 +111,105 @@ function Tasks({ onTaskSelected }) {
         setError(err.message)
     } finally {
         setCreatingTask(false)
+    }
+  }
+
+
+
+  const generateAiBreakdown = async () => {
+    if (!aiDescription.trim()) {
+      setError('Please describe the product or support request first.')
+      return
+    }
+
+    try {
+      setAiLoading(true)
+      setError('')
+      setAiSuggestions([])
+      setShowAiSuggestions(false)
+
+      const response = await apiFetch('/tasks/ai-breakdown', {
+        method: 'POST',
+        body: JSON.stringify({
+          description: aiDescription.trim(),
+        }),
+      })
+
+      const data = await response.json().catch(() => null)
+
+      if (!response.ok) {
+        const errorMessage =
+          data?.message ||
+          data?.error ||
+          `Failed to generate AI task suggestions (${response.status})`
+
+        throw new Error(errorMessage)
+      }
+
+      const suggestions = data?.suggestions?.tasks
+
+      if (!Array.isArray(suggestions)) {
+        throw new Error('AI returned an invalid task breakdown.')
+      }
+
+      setAiSuggestions(suggestions)
+      setSelectedAiTasks(suggestions.map((_, index) => index))
+      setShowAiSuggestions(true)
+
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setAiLoading(false)
+    }
+  }
+
+
+
+
+  const confirmAiBreakdown = async () => {
+    if (selectedAiTasks.length === 0) {
+      setError('Please select at least one task to create.')
+      return
+    }
+
+    try {
+      setAiConfirming(true)
+      setError('')
+
+      const response = await apiFetch('/tasks/confirm-ai-breakdown', {
+        method: 'POST',
+        body: JSON.stringify({
+          tasks: selectedAiTasks.map((index) => aiSuggestions[index]),
+        }),
+      })
+
+      const data = await response.json().catch(() => null)
+
+      if (!response.ok) {
+        const errorMessage =
+          data?.message ||
+          data?.error ||
+          `Failed to create confirmed tasks (${response.status})`
+
+        throw new Error(errorMessage)
+      }
+
+      if (!data?.confirmed) {
+        throw new Error('Task confirmation was not completed.')
+      }
+
+      setTasks((previous) => [
+        ...previous,
+        ...(Array.isArray(data.tasks) ? data.tasks : []),
+      ])
+
+      setAiSuggestions([])
+      setAiDescription('')
+      setShowAiSuggestions(false)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setAiConfirming(false)
     }
   }
 
@@ -211,6 +317,107 @@ function Tasks({ onTaskSelected }) {
 
   return (
     <div className="tasks-page">
+
+      <div className="ai-task-section">
+        <div className="ai-task-header">
+          <div>
+            <h2>AI Task Assistant</h2>
+            <p>
+              Describe a product or support request and get suggested tasks.
+            </p>
+          </div>
+        </div>
+
+        <textarea
+          value={aiDescription}
+          onChange={(event) => setAiDescription(event.target.value)}
+          placeholder="Example: The dashboard needs a password reset feature with email verification."
+          rows={4}
+          disabled={aiLoading || aiConfirming}
+        />
+
+        <button
+          type="button"
+          onClick={generateAiBreakdown}
+          disabled={aiLoading || aiConfirming || !aiDescription.trim()}
+        >
+          {aiLoading ? 'Generating...' : 'Generate Task Suggestions'}
+        </button>
+
+        {showAiSuggestions && aiSuggestions.length > 0 && (
+          <div className="ai-suggestions">
+            <h3>Review AI Suggestions</h3>
+
+            <p className="ai-review-note">
+              These are suggestions only. Review them before creating tasks.
+            </p>
+
+            {aiSuggestions.map((suggestion, index) => (
+              <div
+                className={`ai-suggestion-card ${
+                  selectedAiTasks.includes(index) ? 'selected' : ''
+                }`}
+                key={`${suggestion.title}-${index}`}
+              >
+                <label className="ai-suggestion-select">
+                  <input
+                    type="checkbox"
+                    checked={selectedAiTasks.includes(index)}
+                    onChange={() => {
+                      setSelectedAiTasks((previous) =>
+                        previous.includes(index)
+                          ? previous.filter((item) => item !== index)
+                          : [...previous, index]
+                      )
+                    }}
+                    disabled={aiConfirming}
+                  />
+
+                  <span>Select this task</span>
+                </label>
+
+                <h4>{suggestion.title}</h4>
+
+                <p>{suggestion.description}</p>
+
+                <div className="ai-suggestion-meta">
+                  <span>
+                    Priority: {suggestion.priority}
+                  </span>
+
+                  <span>
+                    Status: {suggestion.suggested_status}
+                  </span>
+                </div>
+              </div>
+            ))}
+
+            <button
+              type="button"
+              onClick={confirmAiBreakdown}
+              disabled={aiConfirming || selectedAiTasks.length === 0}
+            >
+              {aiConfirming
+                ? 'Creating Tasks...'
+                : `Confirm & Create ${selectedAiTasks.length} ${
+                    selectedAiTasks.length === 1 ? 'Task' : 'Tasks'
+                  }`}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setAiSuggestions([])
+                setShowAiSuggestions(false)
+              }}
+              disabled={aiConfirming}
+            >
+              Discard Suggestions
+            </button>
+          </div>
+        )}
+      </div>
+
 
       <div className="tasks-header">
         <div>

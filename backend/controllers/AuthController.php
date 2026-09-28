@@ -26,6 +26,11 @@ class AuthController extends Controller
             ],
         ];
 
+        $behaviors['authenticator'] = [
+            'class' => \yii\filters\auth\HttpBearerAuth::class,
+            'only' => ['logout'],
+        ];
+
         return $behaviors;
     }
 

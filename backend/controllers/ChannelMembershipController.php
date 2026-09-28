@@ -87,54 +87,73 @@ class ChannelMembershipController extends ActiveController
 
     public function actionCreate()
     {
-        $membership = new \app\models\ChannelMembership();
+        $transaction = \Yii::$app->db->beginTransaction();
 
-        $membership->load(\Yii::$app->request->bodyParams, '');
+        try {
+            $membership = new \app\models\ChannelMembership();
+            $membership->load(\Yii::$app->request->bodyParams, '');
 
-        if (!$membership->save()) {
-            \Yii::$app->response->statusCode = 422;
+            if (!$membership->save()) {
+                $transaction->rollBack();
 
-            return [
-                'errors' => $membership->getErrors(),
-            ];
-        }
+                \Yii::$app->response->statusCode = 422;
 
-        // If this channel has a team_chat conversation,
-        // also add the user to that conversation.
-        $conversation = \app\models\Conversation::find()
-            ->where([
-                'channel_id' => $membership->channel_id,
-                'type' => 'team_chat',
-            ])
-            ->one();
+                return [
+                    'errors' => $membership->getErrors(),
+                ];
+            }
 
-        if ($conversation) {
-            $participant = \app\models\ConversationParticipant::findOne([
-                'conversation_id' => $conversation->id,
-                'user_id' => $membership->user_id,
-            ]);
+            // If this channel has a team_chat conversation,
+            // also add the user to that conversation.
+            $conversation = \app\models\Conversation::find()
+                ->where([
+                    'channel_id' => $membership->channel_id,
+                    'type' => 'team_chat',
+                ])
+                ->one();
 
-            if (!$participant) {
-                $participant = new \app\models\ConversationParticipant();
-                $participant->conversation_id = $conversation->id;
-                $participant->user_id = $membership->user_id;
-                $participant->joined_at = time();
-                $participant->role = 'member';
+            if ($conversation) {
+                $participant = \app\models\ConversationParticipant::findOne([
+                    'conversation_id' => $conversation->id,
+                    'user_id' => $membership->user_id,
+                ]);
 
-                if (!$participant->save()) {
-                    $membership->delete();
+                if (!$participant) {
+                    $participant = new \app\models\ConversationParticipant();
+                    $participant->conversation_id = $conversation->id;
+                    $participant->user_id = $membership->user_id;
+                    $participant->joined_at = time();
+                    $participant->role = 'member';
 
-                    \Yii::$app->response->statusCode = 422;
+                    if (!$participant->save()) {
+                        $transaction->rollBack();
 
-                    return [
-                        'errors' => $participant->getErrors(),
-                    ];
+                        \Yii::$app->response->statusCode = 422;
+
+                        return [
+                            'errors' => $participant->getErrors(),
+                        ];
+                    }
                 }
             }
+
+            $transaction->commit();
+
+            \Yii::$app->response->statusCode = 201;
+
+            return $membership;
+
+        } catch (\Throwable $e) {
+            if ($transaction->getIsActive()) {
+                $transaction->rollBack();
+            }
+
+            \Yii::$app->response->statusCode = 500;
+
+            return [
+                'error' => 'Failed to create channel membership.',
+                'message' => $e->getMessage(),
+            ];
         }
-
-        \Yii::$app->response->statusCode = 201;
-
-        return $membership;
     }
 }

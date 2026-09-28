@@ -17,6 +17,10 @@ function Dashboard({
   const [teamMembers, setTeamMembers] = useState({})
   const [searchTerm, setSearchTerm] = useState('')
 
+  const [aiSearchResults, setAiSearchResults] = useState([])
+  const [aiSearchLoading, setAiSearchLoading] = useState(false)
+  const [aiSearchError, setAiSearchError] = useState('')
+
   const [tasks, setTasks] = useState([])
   const [users, setUsers] = useState([])
   const [roles, setRoles] = useState([])
@@ -120,6 +124,51 @@ function Dashboard({
 
     fetchDashboardData()
   }, [])
+
+
+
+
+  const handleAiSearch = async () => {
+    const query = searchTerm.trim()
+
+    if (!query) {
+      setAiSearchResults([])
+      setAiSearchError('')
+      return
+    }
+
+    try {
+      setAiSearchLoading(true)
+      setAiSearchError('')
+
+      const response = await apiFetch('/search/ai', {
+        method: 'POST',
+        body: JSON.stringify({
+          query,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(
+          data?.message || 'Unable to perform AI search.'
+        )
+      }
+
+      setAiSearchResults(
+        Array.isArray(data.results) ? data.results : []
+      )
+    } catch (error) {
+      console.error('AI search failed:', error)
+      setAiSearchResults([])
+      setAiSearchError(error.message || 'Unable to perform AI search.')
+    } finally {
+      setAiSearchLoading(false)
+    }
+  }
+
+
 
   const getActivityDescription = (activity, oldValue, newValue) => {
 
@@ -280,8 +329,21 @@ function Dashboard({
                 placeholder="Search users, tasks, meetings, teams, or roles..."
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
+                onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                    handleAiSearch()
+                    }
+                }}
             />
-           </div>
+
+            <button
+                type="button"
+                onClick={handleAiSearch}
+                disabled={!searchTerm.trim() || aiSearchLoading}
+            >
+                {aiSearchLoading ? 'Searching...' : 'AI Search'}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -328,6 +390,40 @@ function Dashboard({
     {searchTerm.trim() && (
     <div className="dashboard-search-results">
         <h3>Search Results</h3>
+
+        {aiSearchError && (
+          <p className="ai-search-error">{aiSearchError}</p>
+        )}
+
+        {aiSearchResults.length > 0 && (
+          <div className="search-result-section ai-search-section">
+            <strong>AI Task Results</strong>
+
+            {aiSearchResults.map((task) => (
+              <div
+                className="search-result-item search-result-clickable"
+                key={`ai-task-${task.id}`}
+                onClick={() => onTaskSelected(task)}
+              >
+                <span>{task.title}</span>
+                <small>
+                  {task.status}
+                  {task.priority ? ` • ${task.priority}` : ''}
+                </small>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!aiSearchLoading &&
+          searchTerm.trim() &&
+          aiSearchResults.length === 0 &&
+          !aiSearchError && (
+            <p className="ai-search-empty">
+              No AI task results found.
+            </p>
+          )}
+
 
         <div className="search-result-section">
             <strong>Users</strong>

@@ -200,6 +200,7 @@ input {
 .chat-container {
   width: 100%;
   height: calc(100vh - 48px);
+  min-height : 0;
   background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 14px;
@@ -234,6 +235,83 @@ input {
   font-size: 12px;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+.ai-summary-section {
+  padding: 16px 24px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.ai-summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ai-summary-header h3 {
+  margin: 0;
+  font-size: 15px;
+  color: #111827;
+}
+
+.ai-summary-header button {
+  padding: 7px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #374151;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.ai-summary-header button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ai-summary-content {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.ai-summary-error {
+  margin: 10px 0 0;
+  color: #b91c1c;
+  font-size: 12px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 .connection-status {
   display: flex;
   align-items: center;
@@ -259,6 +337,7 @@ input {
 
 .messages {
   flex: 1;
+  min-height: 0;
   padding: 24px;
   overflow-y: auto;
   background: #f8fafc;

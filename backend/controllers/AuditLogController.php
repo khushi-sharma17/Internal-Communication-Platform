@@ -58,6 +58,7 @@ class AuditLogController extends ActiveController
         $actions = parent::actions();
 
         unset(
+            $actions['index'],
             $actions['create'],
             $actions['update'],
             $actions['delete']
@@ -65,6 +66,18 @@ class AuditLogController extends ActiveController
 
         return $actions;
     }
+
+
+
+    public function actionIndex()
+    {
+        return AuditLog::find()
+            ->orderBy(['id' => SORT_DESC])
+            ->limit(5)
+            ->all();
+    }
+
+
 
     public function actionOptions()
     {

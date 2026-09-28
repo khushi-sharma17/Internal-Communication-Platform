@@ -91,67 +91,84 @@ class RoleController extends ActiveController
         Yii::$app->response->statusCode = 200;
         return [];
     }
+    
 
     public function actionCreate()
     {
         $request = Yii::$app->request;
         $data = $request->bodyParams;
 
-        $role = new \app\models\Role();
+        $transaction = Yii::$app->db->beginTransaction();
 
-        $role->name = $data['name'] ?? null;
-        $role->description = $data['description'] ?? null;
-        $role->created_at = time();
+        try {
+            $role = new \app\models\Role();
+            $role->name = $data['name'] ?? null;
+            $role->description = $data['description'] ?? null;
+            $role->created_at = time();
 
-        if (!$role->save()) {
-            Yii::$app->response->statusCode = 422;
-
-            return [
-                'errors' => $role->getErrors()
-            ];
-        }
-
-        // Permission IDs sent by the frontend
-        $permissionIds = $data['permission_ids'] ?? [];
-
-        foreach ($permissionIds as $permissionId) {
-            $rolePermission = new \app\models\RolePermission();
-
-            $rolePermission->role_id = $role->id;
-            $rolePermission->permission_id = $permissionId;
-            $rolePermission->created_at = time();
-
-            if (!$rolePermission->save()) {
-                // Remove the role if permission mapping fails
-                $role->delete();
+            if (!$role->save()) {
+                $transaction->rollBack();
 
                 Yii::$app->response->statusCode = 422;
 
                 return [
-                    'errors' => $rolePermission->getErrors()
+                    'errors' => $role->getErrors()
                 ];
             }
+
+            $permissionIds = $data['permission_ids'] ?? [];
+
+            foreach ($permissionIds as $permissionId) {
+                $rolePermission = new \app\models\RolePermission();
+                $rolePermission->role_id = $role->id;
+                $rolePermission->permission_id = $permissionId;
+                $rolePermission->created_at = time();
+
+                if (!$rolePermission->save()) {
+                    $transaction->rollBack();
+
+                    Yii::$app->response->statusCode = 422;
+
+                    return [
+                        'errors' => $rolePermission->getErrors()
+                    ];
+                }
+            }
+
+            $transaction->commit();
+
+            Yii::$app->response->statusCode = 201;
+
+            $createdRole = \app\models\Role::find()
+                ->where(['id' => $role->id])
+                ->with('permissions')
+                ->one();
+
+            AuditLogger::log(
+                'role',
+                (int) $role->id,
+                'created',
+                null,
+                [
+                    'name' => $role->name,
+                    'description' => $role->description,
+                    'permission_ids' => $permissionIds,
+                ]
+            );
+
+            return $createdRole;
+
+        } catch (\Throwable $e) {
+            if ($transaction->getIsActive()) {
+                $transaction->rollBack();
+            }
+
+            Yii::$app->response->statusCode = 500;
+
+            return [
+                'error' => 'Failed to create role.',
+                'message' => $e->getMessage(),
+            ];
         }
-
-        Yii::$app->response->statusCode = 201;
-
-        $createdRole = \app\models\Role::find()
-            ->where(['id' => $role->id])
-            ->with('permissions')
-            ->one();
-
-        AuditLogger::log(
-            'role',
-            (int) $role->id,
-            'created',
-            null,
-            [
-                'name' => $role->name,
-                'description' => $role->description,
-                'permission_ids' => $permissionIds,
-            ]
-        );
-
-        return $createdRole;
     }
 }

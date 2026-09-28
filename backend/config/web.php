@@ -80,6 +80,12 @@ $config = [
                 [
                     'class' => 'yii\rest\UrlRule',
                     'controller' => 'task',
+                    'extraPatterns' => [
+                        'POST ai-breakdown' => 'ai-breakdown',
+                        'OPTIONS ai-breakdown' => 'options',
+                        'POST confirm-ai-breakdown' => 'confirm-ai-breakdown',
+                        'OPTIONS confirm-ai-breakdown' => 'options',
+                    ],
                 ],
                 [
                     'class' => 'yii\rest\UrlRule',
@@ -151,6 +157,8 @@ $config = [
                     'controller' => 'conversation',
                     'extraPatterns' => [
                         'POST create-task-chat' => 'create-task-chat',
+                        'POST <id>/ai-summary' => 'ai-summary',
+                        'OPTIONS <id>/ai-summary' => 'options',
                         'OPTIONS create-task-chat' => 'options',
                     ],
                 ],
@@ -242,6 +250,32 @@ $config = [
                 [
                     'class' => 'yii\rest\UrlRule',
                     'controller' => 'meeting',
+                    'extraPatterns' => [
+                        'POST <id>/ai-summary' => 'ai-summary',
+                    ],
+                ],
+
+
+                [
+                    'class' => 'yii\rest\UrlRule',
+                    'controller' => 'meeting-note',
+                    'extraPatterns' => [
+                        'GET <meetingId>' => 'index',
+                        'POST <meetingId>/notes' => 'create',
+                        'OPTIONS <meetingId>/notes' => 'options',
+                        'PUT <id>' => 'update',
+                        'POST <id>/ai-summary' => 'ai-summary',
+                        'OPTIONS <id>/ai-summary' => 'options',
+                    ],
+                ],
+
+                [
+                    'class' => 'yii\rest\UrlRule',
+                    'controller' => 'search',
+                    'extraPatterns' => [
+                        'POST ai' => 'ai',
+                        'OPTIONS ai' => 'options',
+                    ],
                 ],
 
                 [

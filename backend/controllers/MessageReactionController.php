@@ -9,6 +9,7 @@ use app\models\ConversationParticipant;
 use yii\rest\Controller;
 use yii\filters\auth\HttpBearerAuth;
 use yii\filters\Cors;
+use app\components\AccessControl;
 
 class MessageReactionController extends Controller
 {
@@ -140,15 +141,10 @@ class MessageReactionController extends Controller
             ];
         }
 
-        $isTaskAuthorized =
-            (int)$task->created_by === (int)$userId
-            || (int)$task->assigned_to === (int)$userId
-            || \app\models\TaskWatcher::find()
-                ->where([
-                    'task_id' => $task->id,
-                    'user_id' => $userId,
-                ])
-                ->exists();
+        $isTaskAuthorized = AccessControl::canViewTask(
+            $task,
+            (int)$userId
+        );
 
         if (!$isTaskAuthorized) {
             Yii::$app->response->statusCode = 403;
@@ -272,15 +268,10 @@ class MessageReactionController extends Controller
             ];
         }
 
-        $isTaskAuthorized =
-            (int)$task->created_by === (int)$userId
-            || (int)$task->assigned_to === (int)$userId
-            || \app\models\TaskWatcher::find()
-                ->where([
-                    'task_id' => $task->id,
-                    'user_id' => $userId,
-                ])
-                ->exists();
+        $isTaskAuthorized = AccessControl::canViewTask(
+            $task,
+            (int)$userId
+        );
 
         if (!$isTaskAuthorized) {
             Yii::$app->response->statusCode = 403;
@@ -396,15 +387,10 @@ class MessageReactionController extends Controller
             ];
         }
 
-        $isTaskAuthorized =
-            (int)$task->created_by === (int)$userId
-            || (int)$task->assigned_to === (int)$userId
-            || \app\models\TaskWatcher::find()
-                ->where([
-                    'task_id' => $task->id,
-                    'user_id' => $userId,
-                ])
-                ->exists();
+        $isTaskAuthorized = AccessControl::canViewTask(
+            $task,
+            (int)$userId
+        );
 
         if (!$isTaskAuthorized) {
             Yii::$app->response->statusCode = 403;

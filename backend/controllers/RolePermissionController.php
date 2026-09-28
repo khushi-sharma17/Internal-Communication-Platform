@@ -33,8 +33,27 @@ class RolePermissionController extends ActiveController
             return false;
         }
 
+        $userId = \Yii::$app->user->id;
+
+        if (
+            in_array(
+                $action->id,
+                ['create', 'update', 'delete'],
+                true
+            ) &&
+            !\app\components\Rbac::hasPermission(
+                $userId,
+                'manage_roles'
+            )
+        ) {
+            throw new \yii\web\ForbiddenHttpException(
+                'You do not have permission to manage role permissions.'
+            );
+        }
+
         if ($action->id === 'delete') {
             $id = \Yii::$app->request->get('id');
+
             $permission = RolePermission::findOne($id);
 
             if ($permission) {

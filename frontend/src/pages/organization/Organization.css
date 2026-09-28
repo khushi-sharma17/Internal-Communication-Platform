@@ -1855,3 +1855,40 @@
   border: 2px solid #4f46e5;
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
 }
+
+
+
+
+
+
+
+
+
+.organization-unit-select {
+  width: 100%;
+  min-width: 140px;
+  padding: 7px 30px 7px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #374151;
+  font-size: 13px;
+  line-height: 1.4;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.organization-unit-select:hover {
+  border-color: #9ca3af;
+}
+
+.organization-unit-select:focus {
+  border-color: #6b7280;
+  box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.12);
+}
+
+.organization-unit-select option {
+  color: #374151;
+  background: #ffffff;
+}
